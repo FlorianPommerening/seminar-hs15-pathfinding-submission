@@ -3,14 +3,23 @@
 #include <algorithm>
 #include <assert.h>
 #include <stdio.h>
+#include <iostream>
+#include <cmath>
 #include "Entry.h"
 
 std::vector<bool> map;
-std::vector<int> visited;
+//std::vector<int> visited;
+std::vector<double> visited;
 std::vector<xyLoc> succ;
 int width, height;
 
+const double SQUARE_TWO = 1.4142135623730951;
+const double EPSILON = 0.000001;
+
+using namespace std;
+
 void GetSuccessors(xyLoc s, std::vector<xyLoc> &neighbors);
+void Get_Diagonal_Successors(xyLoc s, std::vector<xyLoc> &neighbors);
 int GetIndex(xyLoc s);
 void ExtractPath(xyLoc end, std::vector<xyLoc> &finalPath);
 
@@ -53,26 +62,43 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		xyLoc next = q.front();
 		
 		q.pop_front();
+		
+		if (abs(next.x - g.x) < EPSILON && abs(next.y - g.y) < EPSILON) // goal found
+		    {
+			ExtractPath(g, path);
+			if (path.size() > 0)
+			    {
+				path.pop_back();
+				return false;
+			    }
+			return true; // empty path
+		    }
+		
+
+
 		GetSuccessors(next, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
-			if (visited[GetIndex(succ[x])])
+		    if (visited[GetIndex(succ[x])] > 0)
 				continue;
 			visited[GetIndex(succ[x])] = visited[GetIndex(next)]+1;
 			
-			if (succ[x].x == g.x && succ[x].y == g.y) // goal found
-			{
-				ExtractPath(g, path);
-				if (path.size() > 0)
-				{
-					path.pop_back();
-					return false;
-				}
-				return true; // empty path
-			}
-
 			q.push_back(succ[x]);
 		}
+
+		Get_Diagonal_Successors(next, succ);
+		for (unsigned int x = 0; x < succ.size(); x++)
+		{
+		    if (visited[GetIndex(succ[x])] > 0)
+				continue;
+			visited[GetIndex(succ[x])] = visited[GetIndex(next)]+SQUARE_TWO;
+			
+			q.push_back(succ[x]);
+		}
+
+
+
+
     }
 	return true; // no path returned, but we're done
 }
@@ -110,25 +136,85 @@ void GetSuccessors(xyLoc s, std::vector<xyLoc> &neighbors)
 		neighbors.push_back(next);
 }
 
+// generates the diagonal successors of s
+void Get_Diagonal_Successors(xyLoc s, std::vector<xyLoc> &neighbors)
+{
+    neighbors.resize(0);
+  
+	xyLoc next = s;
+	next.x++;
+	if (next.x < width && map[GetIndex(next)]) {
+		next.y++;
+		xyLoc temp = next;
+		temp.x--;
+		
+		if (next.y < height && map[GetIndex(next)] && map[GetIndex(temp)]) {
+		    neighbors.push_back(next);
+		}
+		next.y = next.y-2;
+		temp.y = temp.y-2;
+		if (next.y >= 0 && map[GetIndex(next)] && map[GetIndex(temp)]) {
+		    neighbors.push_back(next);
+		}
+	}
+
+	next = s;
+	next.x--;
+	if (next.x >= 0 && map[GetIndex(next)]) {
+	    //neighbors.push_back(next);
+		next.y++;
+		xyLoc temp = next;
+		temp.x++;
+
+		if (next.y < height && map[GetIndex(next)] && map[GetIndex(temp)]) {
+		    neighbors.push_back(next);
+		}
+		next.y = next.y-2;
+		temp.y = temp.y-2;
+		if (next.y >= 0 && map[GetIndex(next)] && map[GetIndex(temp)]) {
+		    neighbors.push_back(next);
+		}
+	}
+}
+
 void ExtractPath(xyLoc end, std::vector<xyLoc> &finalPath)
 {
-	int currCost = visited[GetIndex(end)];
-
+	double currCost = visited[GetIndex(end)];
+	
 	finalPath.resize(0);
 	finalPath.push_back(end);
 
-	while (currCost != 1)
+	bool found = false;
+	
+	while (abs(currCost - 1.0) > EPSILON) 
     {
-		GetSuccessors(finalPath.back(), succ);
-		for (unsigned int x = 0; x < succ.size(); x++)
+	found = false;
+	Get_Diagonal_Successors(finalPath.back(), succ);
+	
+	for (unsigned int x = 0; x < succ.size(); x++)
+	    {
+		if (abs(currCost - visited[GetIndex(succ[x])] - SQUARE_TWO) < EPSILON)
+		    {
+			finalPath.push_back(succ[x]);
+			currCost = currCost - SQUARE_TWO;
+			found = true;
+			break;
+		    }
+	    }
+	
+	if (!found) {
+	    GetSuccessors(finalPath.back(), succ);
+	    
+	    for (unsigned int x = 0; x < succ.size(); x++)
 		{
-			if (visited[GetIndex(succ[x])] == currCost-1)
+		    if (abs(currCost - visited[GetIndex(succ[x])] -1) < EPSILON)
 			{
-				finalPath.push_back(succ[x]);
-				currCost--;
-				break;
+			    finalPath.push_back(succ[x]);
+			    currCost--;
+			    break;
 			}
 		}
+	}		
     }
 	std::reverse(finalPath.begin(), finalPath.end());
 }
