@@ -8,7 +8,6 @@
 #include "Entry.h"
 
 std::vector<bool> map;
-//std::vector<int> visited;
 std::vector<double> visited;
 std::vector<xyLoc> succ;
 int width, height;
@@ -45,7 +44,8 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
 bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 {
 	assert((long)data == 13182);
-	std::deque<xyLoc> q;
+
+	GBasedOpenList q;
 
 	if (path.size() > 0)
 	{
@@ -55,13 +55,11 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 
 	visited.assign(map.size(),0);
 	visited[GetIndex(s)] = 1;
-	q.push_back(s);
+	q.insert(s);
 	
-	while (q.size() > 0)
+	while (!q.empty())
     {
-		xyLoc next = q.front();
-		
-		q.pop_front();
+		xyLoc next = q.pop_min();
 		
 		if (abs(next.x - g.x) < EPSILON && abs(next.y - g.y) < EPSILON) // goal found
 		    {
@@ -83,7 +81,7 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 				continue;
 			visited[GetIndex(succ[x])] = visited[GetIndex(next)]+1;
 			
-			q.push_back(succ[x]);
+			q.insert(succ[x]);
 		}
 
 		Get_Diagonal_Successors(next, succ);
@@ -93,7 +91,7 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 				continue;
 			visited[GetIndex(succ[x])] = visited[GetIndex(next)]+SQUARE_TWO;
 			
-			q.push_back(succ[x]);
+			q.insert(succ[x]);
 		}
 
 
@@ -161,7 +159,6 @@ void Get_Diagonal_Successors(xyLoc s, std::vector<xyLoc> &neighbors)
 	next = s;
 	next.x--;
 	if (next.x >= 0 && map[GetIndex(next)]) {
-	    //neighbors.push_back(next);
 		next.y++;
 		xyLoc temp = next;
 		temp.x++;

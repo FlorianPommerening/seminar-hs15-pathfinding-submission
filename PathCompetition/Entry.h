@@ -1,9 +1,4 @@
-#include <stdint.h>
-
-struct xyLoc {
-  int16_t x;
-  int16_t y;
-};
+#include "g_based_open_list.h"
 
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename);
 void *PrepareForSearch(std::vector<bool> &bits, int width, int height, const char *filename);
