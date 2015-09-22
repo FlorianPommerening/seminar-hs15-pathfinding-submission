@@ -7,9 +7,10 @@ $(TARGET): $(HEADERS) $(SOURCES)
 	g++ -o $@ $(SOURCES)
 
 clean:
-	@: # nothing to clean
+	rm -f *~
 
 distclean:
+	rm -f *~
 	rm -f $(TARGET)
 
 .PHONY: clean distclean
