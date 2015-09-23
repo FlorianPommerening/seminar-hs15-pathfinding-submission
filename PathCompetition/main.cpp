@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	std::vector<stats> experimentStats;
 	for (int x = 0; x < scen.GetNumExperiments(); x++)
     {
-		//printf("%d of %d\n", x+1, scen.GetNumExperiments());
+		printf("%d of %d\n", x+1, scen.GetNumExperiments());
 		thePath.resize(0);
 		experimentStats.resize(x+1);
 		bool done;
