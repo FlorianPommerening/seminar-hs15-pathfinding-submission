@@ -77,9 +77,11 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
 		    // check if succ[x] is reached more cheaply!
-		    if (visited[GetIndex(succ[x])] > 0 && visited[GetIndex(succ[x])] <= visited[GetIndex(next)]+1) {
-			continue;
-		    }
+		    if (visited[GetIndex(succ[x])] > 0 && 
+			((abs(visited[GetIndex(succ[x])] - (visited[GetIndex(next)]+1)) < EPSILON) || (visited[GetIndex(succ[x])] < visited[GetIndex(next)]+1))) 
+			{
+			    continue;
+			}
 		    
 		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+1;
 		    
@@ -90,9 +92,11 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
 		    // check if succ[x] is reached more cheaply!
-		    if (visited[GetIndex(succ[x])] > 0 && visited[GetIndex(succ[x])] <= visited[GetIndex(next)]+SQUARE_TWO) {
-			continue;
-		    }
+		    if (visited[GetIndex(succ[x])] > 0 && 
+			((abs(visited[GetIndex(succ[x])] - (visited[GetIndex(next)]+SQUARE_TWO)) < EPSILON) || (visited[GetIndex(succ[x])] < visited[GetIndex(next)]+SQUARE_TWO)))
+			{
+			    continue;
+			}
 		    
 		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+SQUARE_TWO;
 		    
