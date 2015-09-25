@@ -73,31 +73,31 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		    }
 		
 
-
 		GetSuccessors(next, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
-		    // TODO: check if succ[x] is reached more cheaply!!
-		    if (visited[GetIndex(succ[x])] > 0)
-				continue;
-			visited[GetIndex(succ[x])] = visited[GetIndex(next)]+1;
-			
-			q.insert(succ[x]);
+		    // check if succ[x] is reached more cheaply!
+		    if (visited[GetIndex(succ[x])] > 0 && visited[GetIndex(succ[x])] <= visited[GetIndex(next)]+1) {
+			continue;
+		    }
+		    
+		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+1;
+		    
+		    q.insert(succ[x]);
 		}
 
 		Get_Diagonal_Successors(next, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
-		    // TODO: check if succ[x] is reached more cheaply!!
-		    if (visited[GetIndex(succ[x])] > 0)
-				continue;
-			visited[GetIndex(succ[x])] = visited[GetIndex(next)]+SQUARE_TWO;
-			
-			q.insert(succ[x]);
+		    // check if succ[x] is reached more cheaply!
+		    if (visited[GetIndex(succ[x])] > 0 && visited[GetIndex(succ[x])] <= visited[GetIndex(next)]+SQUARE_TWO) {
+			continue;
+		    }
+		    
+		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+SQUARE_TWO;
+		    
+		    q.insert(succ[x]);
 		}
-
-
-
 
     }
 	return true; // no path returned, but we're done
