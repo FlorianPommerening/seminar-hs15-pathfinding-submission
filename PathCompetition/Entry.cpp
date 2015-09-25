@@ -61,7 +61,7 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
     {
 		xyLoc next = q.pop_min();
 		
-		if (abs(next.x - g.x) < EPSILON && abs(next.y - g.y) < EPSILON) // goal found
+		if (next.x == g.x && next.y == g.y) // goal found
 		    {
 			ExtractPath(g, path);
 			if (path.size() > 0)
