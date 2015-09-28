@@ -41,6 +41,15 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
 	return (void *)13182;
 }
 
+bool already_visited_se_cost(xyLoc s, xyLoc succ, double cost) {
+
+    return (visited[GetIndex(succ)] > 0 && 
+	    // equal cost (modulo EPSLION)
+	    ((abs(visited[GetIndex(succ)] - (visited[GetIndex(s)] + cost)) < EPSILON) 
+	     // or cheaper
+	     || (visited[GetIndex(succ)] < visited[GetIndex(s)] + cost)));
+}
+
 bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 {
 	assert((long)data == 13182);
@@ -76,13 +85,11 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		GetSuccessors(next, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
-		    // check if succ[x] is reached more cheaply!
-		    if (visited[GetIndex(succ[x])] > 0 && 
-			((abs(visited[GetIndex(succ[x])] - (visited[GetIndex(next)]+1)) < EPSILON) || (visited[GetIndex(succ[x])] < visited[GetIndex(next)]+1))) 
-			{
-			    continue;
-			}
-		    
+		    // check if succ[x] is reached at most as costly
+		    if (already_visited_se_cost(next, succ[x], 1)) {
+			continue;
+		    }
+
 		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+1;
 		    
 		    q.insert(succ[x]);
@@ -91,13 +98,11 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		Get_Diagonal_Successors(next, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
-		    // check if succ[x] is reached more cheaply!
-		    if (visited[GetIndex(succ[x])] > 0 && 
-			((abs(visited[GetIndex(succ[x])] - (visited[GetIndex(next)]+SQUARE_TWO)) < EPSILON) || (visited[GetIndex(succ[x])] < visited[GetIndex(next)]+SQUARE_TWO)))
-			{
-			    continue;
-			}
-		    
+		    // check if succ[x] is reached at most as costly
+		    if (already_visited_se_cost(next, succ[x], SQUARE_TWO)) {
+			continue;
+		    }
+					    
 		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+SQUARE_TWO;
 		    
 		    q.insert(succ[x]);
