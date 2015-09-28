@@ -85,18 +85,12 @@ public:
             }
 
             succ.clear();
+            GetAllSuccessors(next, succ);
 
-            GetSuccessors(next_loc, succ);
-            for (unsigned int x = 0; x < succ.size(); x++) {
-                succ[x].g_value = next.g_value + 1;
-                q.insert(succ[x]);
+            for (int i = 0 ; i < succ.size(); ++i) {
+                q.insert(succ[i]);
             }
 
-            Get_Diagonal_Successors(next_loc, succ);
-            for (unsigned int x = 0; x < succ.size(); x++) {
-                succ[x].g_value = next.g_value + SQUARE_TWO;
-                q.insert(succ[x]);
-            }
         }
         return true; // no path returned, but we're done
     }
@@ -106,14 +100,24 @@ private:
         return s.y*map_info->width+s.x;
     }
 
+    void GetAllSuccessors(const Node &node, vector<Node> &succ) {
+        GetSuccessors(node.xy_loc, succ);
+        for (unsigned int x = 0; x < succ.size(); x++) {
+            succ[x].g_value = node.g_value + 1;
+        }
+
+        int num_straight_successors = succ.size();
+
+        Get_Diagonal_Successors(node.xy_loc, succ);
+        for (unsigned int x = num_straight_successors; x < succ.size(); x++) {
+            succ[x].g_value = node.g_value + SQUARE_TWO;
+        }
+    }
 
     // generates 4-connected neighbors
     // doesn't generate 8-connected neighbors (which ARE allowed)
     // a diagonal move must have both cardinal neighbors free to be legal
-
     void GetSuccessors(xyLoc s, vector<Node> &neighbors) {
-        neighbors.resize(0);
-
         xyLoc next = s;
         next.x++;
         if (next.x < map_info->width && map_info->map[GetIndex(next)])
@@ -138,8 +142,6 @@ private:
 
     // generates the diagonal successors of s
     void Get_Diagonal_Successors(xyLoc s, vector<Node> &neighbors) {
-        neighbors.resize(0);
-
         xyLoc next = s;
         next.x++;
         if (next.x < map_info->width && map_info->map[GetIndex(next)]) {
@@ -210,6 +212,7 @@ private:
             }
 
             if (!found) {
+                succ.clear();
                 GetSuccessors(finalPath.back(), succ);
 
                 for (unsigned int x = 0; x < succ.size(); x++) {
