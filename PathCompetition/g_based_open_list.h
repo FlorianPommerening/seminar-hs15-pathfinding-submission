@@ -18,30 +18,36 @@
 struct xyLoc {
     int16_t x;
     int16_t y;
-    double g_value;
 };
 
-// extern std::vector<double> visited;
-// extern int GetIndex(xyLoc s);
+struct Node {
+    xyLoc xy_loc;
+    double g_value;
 
-class GValueComparator {
-public:
-    bool operator()(const xyLoc s1, const xyLoc s2) const {
+    Node() {}
+
+    Node(xyLoc xy_loc) : xy_loc(xy_loc) {}
+
+    bool operator<(const Node &other) const {
 	//return visited[GetIndex(s1)] > visited[GetIndex(s2)];
-	return s1.g_value > s2.g_value;
+	return g_value > other.g_value;
 	//return std::abs(s1.g_value - s2.g_value) > 0.000001;
     }
 };
 
+
+// extern std::vector<double> visited;
+// extern int GetIndex(xyLoc s);
+
 class GBasedOpenList {
-    std::priority_queue<xyLoc, std::vector<xyLoc>, GValueComparator> heap;
+    std::priority_queue<Node, std::vector<Node> > heap;
 public:
     GBasedOpenList();
     ~GBasedOpenList();
 
     bool empty() const;
-    void insert(xyLoc s);
-    xyLoc pop_min();
+    void insert(const Node &n);
+    Node pop_min();
 };
 
 #endif

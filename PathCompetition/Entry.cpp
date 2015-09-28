@@ -9,16 +9,16 @@
 
 std::vector<bool> map;
 std::vector<double> visited;
-std::vector<xyLoc> succ;
+std::vector<Node> succ;
 int width, height;
 
-const double SQUARE_TWO = 1.4142135623730951;
-const double EPSILON = 0.000001;
+const double SQUARE_TWO = 1.4142;
+const double EPSILON = 10e-8;
 
 using namespace std;
 
-void GetSuccessors(xyLoc s, std::vector<xyLoc> &neighbors);
-void Get_Diagonal_Successors(xyLoc s, std::vector<xyLoc> &neighbors);
+void GetSuccessors(xyLoc s, std::vector<Node> &neighbors);
+void Get_Diagonal_Successors(xyLoc s, std::vector<Node> &neighbors);
 int GetIndex(xyLoc s);
 void ExtractPath(xyLoc end, std::vector<xyLoc> &finalPath);
 
@@ -41,15 +41,21 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
 	return (void *)13182;
 }
 
-bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
+
+bool GetPath(void *data, xyLoc s_loc, xyLoc g_loc, std::vector<xyLoc> &path)
 {
 	assert((long)data == 13182);
+
+        
+        Node s;
+        s.xy_loc = s_loc;
+        s.g_value = 0;
 
 	GBasedOpenList q;
 
 	if (path.size() > 0)
 	{
-		path.push_back(g);
+                path.push_back(g_loc);
 		return true;
 	}
 
@@ -58,17 +64,18 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 	
 	while (!q.empty())
     {
-		xyLoc next = q.pop_min();
+                Node next = q.pop_min();
+                xyLoc next_loc = next.xy_loc;
 
-		if (visited[GetIndex(next)] > -1) { 
+		if (visited[GetIndex(next_loc)] > -1) { 
 		    continue;
 		}
+
+		visited[GetIndex(next_loc)] = next.g_value; //mark as visited
 		
-		visited[GetIndex(next)] = next.g_value; //mark as visited
-		
-		if (next.x == g.x && next.y == g.y) // goal found
+		if (next_loc.x == g_loc.x && next_loc.y == g_loc.y) // goal found
 		    {
-			ExtractPath(next, path);
+			ExtractPath(next_loc, path);
 			if (path.size() > 0)
 			    {
 				path.pop_back();
@@ -78,14 +85,14 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		    }
 		
 
-		GetSuccessors(next, succ);
+		GetSuccessors(next_loc, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
 		    succ[x].g_value = next.g_value + 1;
 		    q.insert(succ[x]);
 		}
 
-		Get_Diagonal_Successors(next, succ);
+		Get_Diagonal_Successors(next_loc, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
 		    succ[x].g_value = next.g_value + SQUARE_TWO;
@@ -104,33 +111,33 @@ int GetIndex(xyLoc s)
 // generates 4-connected neighbors
 // doesn't generate 8-connected neighbors (which ARE allowed)
 // a diagonal move must have both cardinal neighbors free to be legal
-void GetSuccessors(xyLoc s, std::vector<xyLoc> &neighbors)
+void GetSuccessors(xyLoc s, std::vector<Node> &neighbors)
 {
 	neighbors.resize(0);
   
 	xyLoc next = s;
 	next.x++;
 	if (next.x < width && map[GetIndex(next)])
-		neighbors.push_back(next);
+               neighbors.push_back(Node(next));
 
 	next = s;
 	next.x--;
 	if (next.x >= 0 && map[GetIndex(next)])
-		neighbors.push_back(next);
+                neighbors.push_back(Node(next));
 
 	next = s;
 	next.y--;
 	if (next.y >= 0 && map[GetIndex(next)])
-		neighbors.push_back(next);
+                neighbors.push_back(Node(next));
 
 	next = s;
 	next.y++;
 	if (next.y < height && map[GetIndex(next)])
-		neighbors.push_back(next);
+                neighbors.push_back(Node(next));
 }
 
 // generates the diagonal successors of s
-void Get_Diagonal_Successors(xyLoc s, std::vector<xyLoc> &neighbors)
+void Get_Diagonal_Successors(xyLoc s, std::vector<Node> &neighbors)
 {
     neighbors.resize(0);
   
@@ -142,12 +149,12 @@ void Get_Diagonal_Successors(xyLoc s, std::vector<xyLoc> &neighbors)
 		temp.x--;
 		
 		if (next.y < height && map[GetIndex(next)] && map[GetIndex(temp)]) {
-		    neighbors.push_back(next);
+		    neighbors.push_back(Node(next));
 		}
 		next.y = next.y-2;
 		temp.y = temp.y-2;
 		if (next.y >= 0 && map[GetIndex(next)] && map[GetIndex(temp)]) {
-		    neighbors.push_back(next);
+		    neighbors.push_back(Node(next));
 		}
 	}
 
@@ -159,12 +166,12 @@ void Get_Diagonal_Successors(xyLoc s, std::vector<xyLoc> &neighbors)
 		temp.x++;
 
 		if (next.y < height && map[GetIndex(next)] && map[GetIndex(temp)]) {
-		    neighbors.push_back(next);
+		    neighbors.push_back(Node(next));
 		}
 		next.y = next.y-2;
 		temp.y = temp.y-2;
 		if (next.y >= 0 && map[GetIndex(next)] && map[GetIndex(temp)]) {
-		    neighbors.push_back(next);
+		    neighbors.push_back(Node(next));
 		}
 	}
 }
@@ -194,9 +201,9 @@ void ExtractPath(xyLoc end, std::vector<xyLoc> &finalPath)
 	    {
 		//cout << visited[GetIndex(succ[x])] << endl;
 
-		if (abs(currCost - visited[GetIndex(succ[x])] - SQUARE_TWO) < EPSILON)
+		if (abs(currCost - visited[GetIndex(succ[x].xy_loc)] - SQUARE_TWO) < EPSILON)
 		    {
-			finalPath.push_back(succ[x]);
+			finalPath.push_back(succ[x].xy_loc);
 			currCost = currCost - SQUARE_TWO;
 			found = true;
 			break;
@@ -208,9 +215,9 @@ void ExtractPath(xyLoc end, std::vector<xyLoc> &finalPath)
 	    
 	    for (unsigned int x = 0; x < succ.size(); x++)
 		{
-		    if (abs(currCost - visited[GetIndex(succ[x])] -1) < EPSILON)
+		    if (abs(currCost - visited[GetIndex(succ[x].xy_loc)] -1) < EPSILON)
 			{
-			    finalPath.push_back(succ[x]);
+			    finalPath.push_back(succ[x].xy_loc);
 			    currCost--;
 			    break;
 			}

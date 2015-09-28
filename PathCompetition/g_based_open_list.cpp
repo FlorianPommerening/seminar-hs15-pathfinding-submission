@@ -16,13 +16,13 @@ bool GBasedOpenList::empty() const {
 }
 
 
-xyLoc GBasedOpenList::pop_min() {
-    xyLoc result = heap.top();
+Node GBasedOpenList::pop_min() {
+    Node result = heap.top();
     heap.pop();
     return result;
 }
 
 
-void GBasedOpenList::insert(xyLoc s) {
-    heap.push(s);
+void GBasedOpenList::insert(const Node &n) {
+    heap.push(n);
 }

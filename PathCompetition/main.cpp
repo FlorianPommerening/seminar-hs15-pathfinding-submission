@@ -136,16 +136,12 @@ int main(int argc, char **argv)
 			xyLoc s, g;
 			s.x = scen.GetNthExperiment(x).GetStartX();
 			s.y = scen.GetNthExperiment(x).GetStartY();
-			s.g_value = 0;
 			g.x = scen.GetNthExperiment(x).GetGoalX();
 			g.y = scen.GetNthExperiment(x).GetGoalY();
-			g.g_value = -1;
 
 			t.StartTimer();
 			done = GetPath(reference, s, g, thePath);
 			t.EndTimer();
-
-			//printf ("path size: %d\n", thePath.size());
 
 			experimentStats[x].times.push_back(t.GetElapsedTime());
 			experimentStats[x].lengths.push_back(thePath.size());
@@ -159,7 +155,7 @@ int main(int argc, char **argv)
 	{
 		printf("%s\ttotal-time\t%f\tmax-time-step\t%f\ttime-20-moves\t%f\ttotal-len\t%f\tsubopt\t%f\t", argv[3],
 			   experimentStats[x].GetTotalTime(), experimentStats[x].GetMaxTimestep(), experimentStats[x].Get20MoveTime(),
-		       roundf(100*experimentStats[x].GetPathLength())/100, roundf((100*experimentStats[x].GetPathLength()/scen.GetNthExperiment(x).GetDistance()))/100);
+		       experimentStats[x].GetPathLength(), experimentStats[x].GetPathLength()/scen.GetNthExperiment(x).GetDistance());
 		if (experimentStats[x].path.size() == 0 ||
 			(experimentStats[x].ValidatePath(width, height, mapData) &&
 			 scen.GetNthExperiment(x).GetStartX() == experimentStats[x].path[0].x &&
