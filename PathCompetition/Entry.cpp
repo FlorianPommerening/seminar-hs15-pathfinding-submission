@@ -63,13 +63,11 @@ public:
 
         GBasedOpenList q;
 
-        if (path.size() > 0) {
-            path.push_back(g_loc);
-            return true;
-        }
-
         visited.assign(map_info->map.size(),-1);
         q.insert(s);
+
+        vector<Node> succ;
+        succ.reserve(8);
 
         while (!q.empty()) {
             Node next = q.pop_min();
@@ -83,15 +81,10 @@ public:
 
             if (next_loc.x == g_loc.x && next_loc.y == g_loc.y) { // goal found
                 ExtractPath(next_loc, visited, path);
-                if (path.size() > 0) {
-                    path.pop_back();
-                    return false;
-                }
-                return true; // empty path
+                return true;
             }
 
-            vector<Node> succ;
-            succ.reserve(8);
+            succ.clear();
 
             GetSuccessors(next_loc, succ);
             for (unsigned int x = 0; x < succ.size(); x++) {
