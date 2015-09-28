@@ -136,12 +136,16 @@ int main(int argc, char **argv)
 			xyLoc s, g;
 			s.x = scen.GetNthExperiment(x).GetStartX();
 			s.y = scen.GetNthExperiment(x).GetStartY();
+			s.g_value = 0;
 			g.x = scen.GetNthExperiment(x).GetGoalX();
 			g.y = scen.GetNthExperiment(x).GetGoalY();
+			g.g_value = -1;
 
 			t.StartTimer();
 			done = GetPath(reference, s, g, thePath);
 			t.EndTimer();
+
+			//printf ("path size: %d\n", thePath.size());
 
 			experimentStats[x].times.push_back(t.GetElapsedTime());
 			experimentStats[x].lengths.push_back(thePath.size());

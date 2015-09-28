@@ -13,19 +13,23 @@
 #include <queue>
 #include <vector>
 #include <stdint.h>
+#include <cmath>
 
 struct xyLoc {
-  int16_t x;
-  int16_t y;
+    int16_t x;
+    int16_t y;
+    double g_value;
 };
 
-extern std::vector<double> visited;
-extern int GetIndex(xyLoc s);
+// extern std::vector<double> visited;
+// extern int GetIndex(xyLoc s);
 
 class GValueComparator {
 public:
     bool operator()(const xyLoc s1, const xyLoc s2) const {
-	return visited[GetIndex(s1)] > visited[GetIndex(s2)];
+	//return visited[GetIndex(s1)] > visited[GetIndex(s2)];
+	return s1.g_value > s2.g_value;
+	//return std::abs(s1.g_value - s2.g_value) > 0.000001;
     }
 };
 

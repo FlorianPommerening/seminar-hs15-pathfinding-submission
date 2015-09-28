@@ -41,15 +41,6 @@ void *PrepareForSearch(std::vector<bool> &bits, int w, int h, const char *filena
 	return (void *)13182;
 }
 
-bool already_visited_se_cost(xyLoc s, xyLoc succ, double cost) {
-
-    return (visited[GetIndex(succ)] > 0 && 
-	    // equal cost (modulo EPSLION)
-	    ((abs(visited[GetIndex(succ)] - (visited[GetIndex(s)] + cost)) < EPSILON) 
-	     // or cheaper
-	     || (visited[GetIndex(succ)] < visited[GetIndex(s)] + cost)));
-}
-
 bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 {
 	assert((long)data == 13182);
@@ -62,17 +53,22 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		return true;
 	}
 
-	visited.assign(map.size(),0);
-	visited[GetIndex(s)] = 1;
+	visited.assign(map.size(),-1);
 	q.insert(s);
 	
 	while (!q.empty())
     {
 		xyLoc next = q.pop_min();
+
+		if (visited[GetIndex(next)] > -1) { 
+		    continue;
+		}
+		
+		visited[GetIndex(next)] = next.g_value; //mark as visited
 		
 		if (next.x == g.x && next.y == g.y) // goal found
 		    {
-			ExtractPath(g, path);
+			ExtractPath(next, path);
 			if (path.size() > 0)
 			    {
 				path.pop_back();
@@ -85,26 +81,14 @@ bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path)
 		GetSuccessors(next, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
-		    // check if succ[x] is reached at most as costly
-		    if (already_visited_se_cost(next, succ[x], 1)) {
-			continue;
-		    }
-
-		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+1;
-		    
+		    succ[x].g_value = next.g_value + 1;
 		    q.insert(succ[x]);
 		}
 
 		Get_Diagonal_Successors(next, succ);
 		for (unsigned int x = 0; x < succ.size(); x++)
 		{
-		    // check if succ[x] is reached at most as costly
-		    if (already_visited_se_cost(next, succ[x], SQUARE_TWO)) {
-			continue;
-		    }
-					    
-		    visited[GetIndex(succ[x])] = visited[GetIndex(next)]+SQUARE_TWO;
-		    
+		    succ[x].g_value = next.g_value + SQUARE_TWO;
 		    q.insert(succ[x]);
 		}
 
@@ -189,18 +173,27 @@ void ExtractPath(xyLoc end, std::vector<xyLoc> &finalPath)
 {
 	double currCost = visited[GetIndex(end)];
 	
+	// cout << "extracting path... " << endl;
+
+	// cout << "visited-value: " << currCost << endl;
+	// cout << "g-value: " << end.g_value << endl;
+
 	finalPath.resize(0);
 	finalPath.push_back(end);
 
 	bool found = false;
+
+	// cout << "currCost: " << currCost << endl;
 	
-	while (abs(currCost - 1.0) > EPSILON) 
+	while (abs(currCost - 0.0) > EPSILON) 
     {
 	found = false;
 	Get_Diagonal_Successors(finalPath.back(), succ);
 	
 	for (unsigned int x = 0; x < succ.size(); x++)
 	    {
+		//cout << visited[GetIndex(succ[x])] << endl;
+
 		if (abs(currCost - visited[GetIndex(succ[x])] - SQUARE_TWO) < EPSILON)
 		    {
 			finalPath.push_back(succ[x]);
