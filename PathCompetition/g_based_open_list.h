@@ -13,12 +13,13 @@
 #include <queue>
 #include <vector>
 #include <stdint.h>
-#include <cmath>
+
 
 struct xyLoc {
     int16_t x;
     int16_t y;
 };
+
 
 struct Node {
     xyLoc xy_loc;
@@ -29,15 +30,10 @@ struct Node {
     Node(xyLoc xy_loc) : xy_loc(xy_loc) {}
 
     bool operator<(const Node &other) const {
-	//return visited[GetIndex(s1)] > visited[GetIndex(s2)];
 	return g_value > other.g_value;
-	//return std::abs(s1.g_value - s2.g_value) > 0.000001;
     }
 };
 
-
-// extern std::vector<double> visited;
-// extern int GetIndex(xyLoc s);
 
 class GBasedOpenList {
     std::priority_queue<Node, std::vector<Node> > heap;
