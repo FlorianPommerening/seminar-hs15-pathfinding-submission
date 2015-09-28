@@ -101,82 +101,58 @@ private:
     }
 
     void GetAllSuccessors(const Node &node, vector<Node> &succ) {
-        GetSuccessors(node.xy_loc, succ);
-        for (unsigned int x = 0; x < succ.size(); x++) {
-            succ[x].g_value = node.g_value + 1;
-        }
+        try_straight_successor(node, +1, 0, succ);
+        try_straight_successor(node, -1, 0, succ);
+        try_straight_successor(node, 0, +1, succ);
+        try_straight_successor(node, 0, -1, succ);
 
-        int num_straight_successors = succ.size();
+        try_diagonal_successor(node, +1, +1, succ);
+        try_diagonal_successor(node, +1, -1, succ);
+        try_diagonal_successor(node, -1, +1, succ);
+        try_diagonal_successor(node, -1, -1, succ);
+    }
 
-        Get_Diagonal_Successors(node.xy_loc, succ);
-        for (unsigned int x = num_straight_successors; x < succ.size(); x++) {
-            succ[x].g_value = node.g_value + SQUARE_TWO;
+    // generate a straight successor (if legal)
+    void try_straight_successor(const Node &node, int delta_x, int delta_y, vector<Node> &succ) {
+        xyLoc new_loc;
+        new_loc.x = node.xy_loc.x + delta_x;
+        new_loc.y = node.xy_loc.y + delta_y;
+
+        if (new_loc.x >= 0 && new_loc.x < map_info->width &&
+            new_loc.y >= 0 && new_loc.y < map_info->height &&
+            map_info->map[GetIndex(new_loc)]) {
+            Node new_node;
+            new_node.xy_loc = new_loc;
+            new_node.g_value = node.g_value + 1;
+            succ.push_back(new_node);
         }
     }
 
-    // generates 4-connected neighbors
-    // doesn't generate 8-connected neighbors (which ARE allowed)
-    // a diagonal move must have both cardinal neighbors free to be legal
-    void GetSuccessors(xyLoc s, vector<Node> &neighbors) {
-        xyLoc next = s;
-        next.x++;
-        if (next.x < map_info->width && map_info->map[GetIndex(next)])
-            neighbors.push_back(Node(next));
+    // generate a diagonal successor (if legal)
+    void try_diagonal_successor(const Node &node, int delta_x, int delta_y, vector<Node> &succ) {
+        xyLoc new_loc;
+        new_loc.x = node.xy_loc.x + delta_x;
+        new_loc.y = node.xy_loc.y + delta_y;
 
-        next = s;
-        next.x--;
-        if (next.x >= 0 && map_info->map[GetIndex(next)])
-            neighbors.push_back(Node(next));
+        xyLoc straight_loc1;
+        straight_loc1.x = node.xy_loc.x + delta_x;
+        straight_loc1.y = node.xy_loc.y;
 
-        next = s;
-        next.y--;
-        if (next.y >= 0 && map_info->map[GetIndex(next)])
-            neighbors.push_back(Node(next));
+        xyLoc straight_loc2;
+        straight_loc2.x = node.xy_loc.x;
+        straight_loc2.y = node.xy_loc.y + delta_y;
 
-        next = s;
-        next.y++;
-        if (next.y < map_info->height && map_info->map[GetIndex(next)])
-            neighbors.push_back(Node(next));
-    }
-
-
-    // generates the diagonal successors of s
-    void Get_Diagonal_Successors(xyLoc s, vector<Node> &neighbors) {
-        xyLoc next = s;
-        next.x++;
-        if (next.x < map_info->width && map_info->map[GetIndex(next)]) {
-            next.y++;
-            xyLoc temp = next;
-            temp.x--;
-
-            if (next.y < map_info->height && map_info->map[GetIndex(next)] && map_info->map[GetIndex(temp)]) {
-                neighbors.push_back(Node(next));
-            }
-            next.y = next.y-2;
-            temp.y = temp.y-2;
-            if (next.y >= 0 && map_info->map[GetIndex(next)] && map_info->map[GetIndex(temp)]) {
-                neighbors.push_back(Node(next));
-            }
-        }
-
-        next = s;
-        next.x--;
-        if (next.x >= 0 && map_info->map[GetIndex(next)]) {
-            next.y++;
-            xyLoc temp = next;
-            temp.x++;
-
-            if (next.y < map_info->height && map_info->map[GetIndex(next)] && map_info->map[GetIndex(temp)]) {
-                neighbors.push_back(Node(next));
-            }
-            next.y = next.y-2;
-            temp.y = temp.y-2;
-            if (next.y >= 0 && map_info->map[GetIndex(next)] && map_info->map[GetIndex(temp)]) {
-                neighbors.push_back(Node(next));
-            }
+        if (new_loc.x >= 0 && new_loc.x < map_info->width &&
+            new_loc.y >= 0 && new_loc.y < map_info->height &&
+            map_info->map[GetIndex(new_loc)] &&
+            map_info->map[GetIndex(straight_loc1)] &&
+            map_info->map[GetIndex(straight_loc2)]) {
+            Node new_node;
+            new_node.xy_loc = new_loc;
+            new_node.g_value = node.g_value + SQUARE_TWO;
+            succ.push_back(new_node);
         }
     }
-
 
     void ExtractPath(xyLoc end, const vector<double> &visited, vector<xyLoc> &finalPath) {
         double currCost = visited[GetIndex(end)];
@@ -198,7 +174,7 @@ private:
             vector<Node> succ;
             succ.reserve(8);
 
-            Get_Diagonal_Successors(finalPath.back(), succ);
+            GetAllSuccessors(finalPath.back(), succ);
 
             for (unsigned int x = 0; x < succ.size(); x++) {
                 //cout << visited[GetIndex(succ[x])] << endl;
@@ -212,9 +188,6 @@ private:
             }
 
             if (!found) {
-                succ.clear();
-                GetSuccessors(finalPath.back(), succ);
-
                 for (unsigned int x = 0; x < succ.size(); x++) {
                     if (abs(currCost - visited[GetIndex(succ[x].xy_loc)] -1) < EPSILON) {
                         finalPath.push_back(succ[x].xy_loc);
