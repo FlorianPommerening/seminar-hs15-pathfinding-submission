@@ -10,13 +10,6 @@
 using namespace std;
 
 
-vector<double> visited;
-vector<Node> succ;
-
-const double SQUARE_TWO = 1.4142;
-const double EPSILON = 10e-8;
-
-
 struct MapInfo {
     vector<bool> map;
     int width;
@@ -46,10 +39,14 @@ void *PrepareForSearch(vector<bool> &bits, int w, int h, const char *filename) {
 }
 
 
+static const double SQUARE_TWO = 1.4142;
+static const double EPSILON = 10e-8;
+
+
 class SearchAlgorithm {
-    MapInfo *map_info;
-    xyLoc s_loc;
-    xyLoc g_loc;
+    const MapInfo *map_info;
+    const xyLoc s_loc;
+    const xyLoc g_loc;
     vector<xyLoc> &path;
 public:
     SearchAlgorithm(MapInfo *map_info, xyLoc s_loc, xyLoc g_loc,
@@ -61,6 +58,8 @@ public:
         Node s;
         s.xy_loc = s_loc;
         s.g_value = 0;
+
+        vector<double> visited;
 
         GBasedOpenList q;
 
@@ -83,13 +82,16 @@ public:
             visited[GetIndex(next_loc)] = next.g_value; //mark as visited
 
             if (next_loc.x == g_loc.x && next_loc.y == g_loc.y) { // goal found
-                ExtractPath(next_loc, path);
+                ExtractPath(next_loc, visited, path);
                 if (path.size() > 0) {
                     path.pop_back();
                     return false;
                 }
                 return true; // empty path
             }
+
+            vector<Node> succ;
+            succ.reserve(8);
 
             GetSuccessors(next_loc, succ);
             for (unsigned int x = 0; x < succ.size(); x++) {
@@ -181,7 +183,7 @@ private:
     }
 
 
-    void ExtractPath(xyLoc end, vector<xyLoc> &finalPath) {
+    void ExtractPath(xyLoc end, const vector<double> &visited, vector<xyLoc> &finalPath) {
         double currCost = visited[GetIndex(end)];
 
         // cout << "extracting path... " << endl;
@@ -198,6 +200,9 @@ private:
 
         while (abs(currCost) > EPSILON) {
             found = false;
+            vector<Node> succ;
+            succ.reserve(8);
+
             Get_Diagonal_Successors(finalPath.back(), succ);
 
             for (unsigned int x = 0; x < succ.size(); x++) {
