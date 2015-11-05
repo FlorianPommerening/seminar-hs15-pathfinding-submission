@@ -88,7 +88,8 @@ public:
             GetAllSuccessors(next, succ);
 
             for (int i = 0 ; i < succ.size(); ++i) {
-                q.insert(succ[i]);
+		succ[i].f_value = succ[i].g_value + get_octile_heuristic_value(succ[i]);
+		q.insert(succ[i]);
             }
 
         }
@@ -98,6 +99,17 @@ public:
 private:
     int GetIndex(xyLoc s) {
         return s.y*map_info->width+s.x;
+    }
+    
+    double get_octile_heuristic_value(Node& succ) const {
+	
+	xyLoc xy_loc = succ.xy_loc;
+	int dx = abs(xy_loc.x - g_loc.x);
+	int dy = abs(xy_loc.y - g_loc.y);
+
+	return SQUARE_TWO * (min(dx,dy)) + abs(dx - dy);
+
+	// return 0;
     }
 
     void GetAllSuccessors(const Node &node, vector<Node> &succ) {

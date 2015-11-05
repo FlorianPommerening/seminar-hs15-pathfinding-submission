@@ -24,13 +24,14 @@ struct xyLoc {
 struct Node {
     xyLoc xy_loc;
     double g_value;
+    double f_value;
 
     Node() {}
 
     Node(xyLoc xy_loc) : xy_loc(xy_loc) {}
 
     bool operator<(const Node &other) const {
-	return g_value > other.g_value;
+	return f_value > other.f_value;
     }
 };
 
@@ -41,9 +42,19 @@ public:
     GBasedOpenList();
     ~GBasedOpenList();
 
-    bool empty() const;
-    void insert(const Node &n);
-    Node pop_min();
+    inline bool empty() const {
+	return heap.empty();
+    };
+	
+    inline void insert(const Node &n) {
+	heap.push(n);
+    };
+    
+    inline Node pop_min() {
+	Node result = heap.top();
+	heap.pop();
+	return result;
+    };
 };
 
 #endif
