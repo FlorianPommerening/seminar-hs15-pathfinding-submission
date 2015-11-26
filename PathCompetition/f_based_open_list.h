@@ -1,14 +1,14 @@
 /*
-  Class for an open list which orders nodes based on their g values (=
-  path costs.)
+  Class for an open list which orders nodes based on their f values (=
+  path costs + heuristic value.)
 
   We implement this as a regular heap (priority queue), which means
   that all relevant operations take O(log N) time were N is the number
   of elements currently in the heap.
 */
 
-#ifndef G_BASED_OPEN_LIST_H
-#define G_BASED_OPEN_LIST_H
+#ifndef F_BASED_OPEN_LIST_H
+#define F_BASED_OPEN_LIST_H
 
 #include <queue>
 #include <vector>
@@ -36,11 +36,11 @@ struct Node {
 };
 
 
-class GBasedOpenList {
+class FBasedOpenList {
     std::priority_queue<Node, std::vector<Node> > heap;
 public:
-    GBasedOpenList();
-    ~GBasedOpenList();
+    FBasedOpenList();
+    ~FBasedOpenList();
 
     inline bool empty() const {
 	return heap.empty();

@@ -61,7 +61,7 @@ public:
 
         vector<double> visited;
 
-        GBasedOpenList q;
+        FBasedOpenList q;
 
         visited.assign(map_info->map.size(),-1);
         q.insert(s);

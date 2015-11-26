@@ -1,5 +1,5 @@
 TARGET = main
-HEADERS = Entry.h ScenarioLoader.h Timer.h g_based_open_list.h
+HEADERS = Entry.h ScenarioLoader.h Timer.h f_based_open_list.h
 SOURCES = $(HEADERS:%.h=%.cpp) $(TARGET).cpp
 
 
