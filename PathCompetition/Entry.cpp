@@ -169,44 +169,27 @@ private:
     void ExtractPath(xyLoc end, const vector<double> &visited, vector<xyLoc> &finalPath) {
         double currCost = visited[GetIndex(end)];
 
-        // cout << "extracting path... " << endl;
-
-        // cout << "visited-value: " << currCost << endl;
-        // cout << "g-value: " << end.g_value << endl;
-
         finalPath.resize(0);
         finalPath.push_back(end);
 
-        bool found = false;
-
-        // cout << "currCost: " << currCost << endl;
-
         while (abs(currCost) > EPSILON) {
-            found = false;
             vector<Node> succ;
             succ.reserve(8);
 
             GetAllSuccessors(finalPath.back(), succ);
 
             for (unsigned int x = 0; x < succ.size(); x++) {
-                //cout << visited[GetIndex(succ[x])] << endl;
-
                 if (abs(currCost - visited[GetIndex(succ[x].xy_loc)] - SQUARE_TWO) < EPSILON) {
                     finalPath.push_back(succ[x].xy_loc);
                     currCost = currCost - SQUARE_TWO;
-                    found = true;
-                    break;
+		    break;
                 }
-            }
 
-            if (!found) {
-                for (unsigned int x = 0; x < succ.size(); x++) {
-                    if (abs(currCost - visited[GetIndex(succ[x].xy_loc)] -1) < EPSILON) {
-                        finalPath.push_back(succ[x].xy_loc);
-                        currCost--;
-                        break;
-                    }
-                }
+		if (abs(currCost - visited[GetIndex(succ[x].xy_loc)] -1) < EPSILON) {
+		    finalPath.push_back(succ[x].xy_loc);
+		    currCost--;
+		    break;
+		}
             }
         }
         reverse(finalPath.begin(), finalPath.end());
