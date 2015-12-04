@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <numeric>
 #include <algorithm>
+#include <math.h>  
 #include "ScenarioLoader.h"
 #include "Timer.h"
 #include "Entry.h"
@@ -127,7 +128,7 @@ int main(int argc, char **argv)
 	std::vector<stats> experimentStats;
 	for (int x = 0; x < scen.GetNumExperiments(); x++)
     {
-		//printf("%d of %d\n", x+1, scen.GetNumExperiments());
+		printf("%d of %d\n", x+1, scen.GetNumExperiments());
 		thePath.resize(0);
 		experimentStats.resize(x+1);
 		bool done;
@@ -154,7 +155,7 @@ int main(int argc, char **argv)
 	{
 		printf("%s\ttotal-time\t%f\tmax-time-step\t%f\ttime-20-moves\t%f\ttotal-len\t%f\tsubopt\t%f\t", argv[3],
 			   experimentStats[x].GetTotalTime(), experimentStats[x].GetMaxTimestep(), experimentStats[x].Get20MoveTime(),
-			   experimentStats[x].GetPathLength(), experimentStats[x].GetPathLength()/scen.GetNthExperiment(x).GetDistance());
+		       experimentStats[x].GetPathLength(), experimentStats[x].GetPathLength()/scen.GetNthExperiment(x).GetDistance());
 		if (experimentStats[x].path.size() == 0 ||
 			(experimentStats[x].ValidatePath(width, height, mapData) &&
 			 scen.GetNthExperiment(x).GetStartX() == experimentStats[x].path[0].x &&
