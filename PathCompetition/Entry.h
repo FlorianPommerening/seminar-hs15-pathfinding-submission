@@ -1,4 +1,6 @@
-#include "f_based_open_list.h"
+#include <vector>
+
+struct xyLoc;
 
 void PreprocessMap(std::vector<bool> &bits, int width, int height, const char *filename);
 void *PrepareForSearch(std::vector<bool> &bits, int width, int height, const char *filename);

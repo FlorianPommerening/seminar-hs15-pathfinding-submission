@@ -1,10 +1,10 @@
 TARGET = main
-HEADERS = Entry.h ScenarioLoader.h Timer.h f_based_open_list.h
+HEADERS = Entry.h ScenarioLoader.h Timer.h f_based_open_list.h search_algorithm.h room_detection.h debug.h
 SOURCES = $(HEADERS:%.h=%.cpp) $(TARGET).cpp
 
 
 $(TARGET): $(HEADERS) $(SOURCES)
-	g++ -O3 -Wno-unused-result -o $@ $(SOURCES)
+	g++ -O0 -g -Wno-unused-result -o $@ $(SOURCES) -lpng12
 
 clean:
 	rm -f *~

@@ -10,16 +10,10 @@
 #ifndef F_BASED_OPEN_LIST_H
 #define F_BASED_OPEN_LIST_H
 
+#include "locations.h"
+
 #include <queue>
 #include <vector>
-#include <stdint.h>
-
-
-struct xyLoc {
-    int16_t x;
-    int16_t y;
-};
-
 
 struct Node {
     xyLoc xy_loc;
@@ -31,7 +25,7 @@ struct Node {
     Node(xyLoc xy_loc) : xy_loc(xy_loc) {}
 
     bool operator<(const Node &other) const {
-	return f_value > other.f_value;
+        return f_value > other.f_value;
     }
 };
 
@@ -43,18 +37,18 @@ public:
     ~FBasedOpenList();
 
     inline bool empty() const {
-	return heap.empty();
-    };
+        return heap.empty();
+    }
 	
     inline void insert(const Node &n) {
-	heap.push(n);
-    };
+        heap.push(n);
+    }
     
     inline Node pop_min() {
-	Node result = heap.top();
-	heap.pop();
-	return result;
-    };
+        Node result = heap.top();
+        heap.pop();
+        return result;
+    }
 };
 
 #endif

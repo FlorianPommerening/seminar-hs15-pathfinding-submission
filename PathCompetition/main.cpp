@@ -6,6 +6,7 @@
 #include "ScenarioLoader.h"
 #include "Timer.h"
 #include "Entry.h"
+#include "locations.h"
 
 void LoadMap(const char *fname, std::vector<bool> &map, int &w, int &h);
 

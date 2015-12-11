@@ -1,0 +1,3 @@
+syntax: glob
+PathCompetition/main
+PathCompetition/pathfinding.*
