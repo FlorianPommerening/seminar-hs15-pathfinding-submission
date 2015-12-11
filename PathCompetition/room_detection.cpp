@@ -1,7 +1,12 @@
 #include "room_detection.h"
 
+#include <iostream>
+
+using namespace std;
+
 int FREE = -1;
 int IMPASSABLE = -2;
+int UNINITIALIZED = -3;
 
 bool find_unassigned_tile(const MapInfo &map_info,
                           int &unassigned_x, int&unassigned_y) {
@@ -17,7 +22,7 @@ bool find_unassigned_tile(const MapInfo &map_info,
     return false;
 }
 
-bool detect_room(MapInfo &map_info, int room_id) {
+bool detect_room_bjornsson(MapInfo &map_info, int room_id) {
     int x_left = 0;
     int y = 0;
     if (!find_unassigned_tile(map_info, x_left, y))
@@ -71,6 +76,190 @@ bool detect_room(MapInfo &map_info, int room_id) {
 }
 
 
+void get_max_free_row_span(MapInfo &map_info, int row, int min_col, int max_col,
+                           int &span_start, int &span_length) {
+    span_start = min_col;
+    span_length = 0;
+    int current_span_start = min_col;
+    bool span_running = false;
+    for (int x = min_col; x < max_col + 1; ++x) {
+        if (span_running && (x == max_col || map_info.get_room(x, row) != FREE)) {
+            int current_span_length = x - current_span_start;
+            if (current_span_length > span_length) {
+                span_start = current_span_start;
+                span_length = current_span_length;
+                span_running = false;
+            }
+        } else if (!span_running && map_info.get_room(x, row) == FREE) {
+            span_running = true;
+            current_span_start = x;
+        }
+    }
+}
+
+void get_max_free_col_span(MapInfo &map_info, int col, int min_row, int max_row,
+                           int &span_start, int &span_length) {
+    span_start = min_row;
+    span_length = 0;
+    int current_span_start = min_row;
+    bool span_running = false;
+    for (int y = min_row; y < max_row + 1; ++y) {
+        if (span_running && (y == max_row || map_info.get_room(col, y) != FREE)) {
+            int current_span_length = y - current_span_start;
+            if (current_span_length > span_length) {
+                span_start = current_span_start;
+                span_length = current_span_length;
+                span_running = false;
+            }
+        } else if (!span_running && map_info.get_room(col, y) == FREE) {
+            span_running = true;
+            current_span_start = y;
+        }
+    }
+}
+void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
+                      int room_size, int gate_size) {
+    int room_w = room_size;
+    int room_h = room_size;
+
+    for (int x = room_x; x < room_x + room_w; ++x) {
+        for (int y = room_y; y < room_y + room_h; ++y) {
+            map_info.set_room(x, y, room_id);
+        }
+    }
+
+    int min_x = room_x;
+    int max_x = room_x + room_w;
+    int min_y_l = room_y;
+    int max_y_l = room_y + room_h;
+    int min_y_r = room_y;
+    int max_y_r = room_y + room_h;
+
+    int span_start;
+    int span_length;
+
+    // Try to extend room upwards
+    for (int y = room_y-1; y >= 0; --y) {
+        get_max_free_row_span(map_info, y, min_x, max_x,
+                              span_start, span_length);
+        if (span_length <= gate_size)
+            break;
+        min_x = span_start;
+        max_x = span_start + span_length;
+        if (span_start == room_x) {
+            --min_y_l;
+        }
+        if (span_start + span_length == room_x + room_w) {
+            --min_y_r;
+        }
+        for (int x = min_x; x < max_x; ++x) {
+            map_info.set_room(x, y, room_id);
+        }
+    }
+
+    // Try to extend room downwards
+    min_x = room_x;
+    max_x = room_x + room_w;
+    for (int y = room_y + room_h; y < map_info.height; ++y) {
+        get_max_free_row_span(map_info, y, min_x, max_x,
+                              span_start, span_length);
+        if (span_length <= gate_size)
+            break;
+        min_x = span_start;
+        max_x = span_start + span_length;
+        if (span_start == room_x) {
+            ++max_y_l;
+        }
+        if (span_start + span_length == room_x + room_w) {
+            ++max_y_r;
+        }
+        for (int x = min_x; x < max_x; ++x) {
+            map_info.set_room(x, y, room_id);
+        }
+    }
+
+
+    // Try to extend room to left
+    for (int x = room_x-1; x >= 0; --x) {
+        get_max_free_col_span(map_info, x, min_y_l, max_y_l,
+                              span_start, span_length);
+        if (span_length <= gate_size)
+            break;
+        min_y_l = span_start;
+        max_y_l = span_start + span_length;
+        for (int y = min_y_l; y < max_y_l; ++y) {
+            map_info.set_room(x, y, room_id);
+        }
+    }
+
+    // Try to extend room to right
+    for (int x = room_x + room_w; x <= map_info.width; ++x) {
+        get_max_free_col_span(map_info, x, min_y_r, max_y_r,
+                              span_start, span_length);
+        if (span_length <= gate_size)
+            break;
+        min_y_r = span_start;
+        max_y_r = span_start + span_length;
+        for (int y = min_y_r; y < max_y_r; ++y) {
+            map_info.set_room(x, y, room_id);
+        }
+    }
+
+}
+
+bool detect_room_large(MapInfo &map_info, int room_id, int min_size, int gate_size) {
+    vector<vector<int> > wall_distance;
+    vector<xyLoc> queue;
+    xyLoc best;
+    int distance = 0;
+    for (int x = 0; x < map_info.width; ++x) {
+        wall_distance.push_back(vector<int>(map_info.height, UNINITIALIZED));
+        for (int y = 0; y < map_info.height; ++y) {
+            if (map_info.get_room(x, y) != FREE) {
+                wall_distance[x][y] = distance;
+                best = xyLoc(x, y);
+                queue.push_back(best);
+            }
+        }
+    }
+    for (int x = 0; x < map_info.width; ++x) {
+        queue.push_back(xyLoc(x, -1));
+        queue.push_back(xyLoc(x, map_info.height));
+    }
+    for (int y = 0; y < map_info.height; ++y) {
+        queue.push_back(xyLoc(-1, y));
+        queue.push_back(xyLoc(map_info.width, y));
+    }
+
+    vector<xyLoc> next_queue;
+    while (!queue.empty()) {
+        ++distance;
+        while (!queue.empty()) {
+            xyLoc loc = queue.back();
+            queue.pop_back();
+            for (int suc_x = max(0, loc.x - 1); suc_x < min(map_info.width, loc.x + 2); ++suc_x) {
+                for (int suc_y = max(0, loc.y - 1); suc_y < min(map_info.height, loc.y + 2); ++suc_y) {
+                    if (wall_distance[suc_x][suc_y] == UNINITIALIZED) {
+                        wall_distance[suc_x][suc_y] = distance;
+                        best = xyLoc(suc_x, suc_y);
+                        next_queue.push_back(best);
+                    }
+                }
+            }
+        }
+        queue.swap(next_queue);
+    }
+
+    if (distance < min_size)
+        return false;
+
+    int room_x = max(0, best.x - distance + 1);
+    int room_y = max(0, best.y - distance + 1);
+    int room_size = 2*distance - 1;
+    build_large_room(map_info, room_id, room_x, room_y, room_size, gate_size);
+    return true;
+}
+
 void detect_rooms(MapInfo &map_info) {
     map_info.rooms.clear();
     map_info.rooms.reserve(map_info.map.size());
@@ -82,7 +271,21 @@ void detect_rooms(MapInfo &map_info) {
         }
     }
     int room_id = 0;
-    while (detect_room(map_info, room_id)) {
+
+    while (detect_room_large(map_info, room_id, 10, 5)) {
         ++room_id;
     }
+    // HACK
+    for (int i = 0; i < map_info.map.size(); ++i){
+        if (map_info.rooms[i] == FREE) {
+            map_info.rooms[i] = room_id + 1;
+        }
+    }
+    cout << "Found " << room_id << " large rooms" << endl;
+
+    while (detect_room_bjornsson(map_info, room_id)) {
+        ++room_id;
+    }
+
+    cout << "Found " << room_id << " rooms in total" << endl;
 }
