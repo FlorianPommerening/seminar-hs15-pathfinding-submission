@@ -118,7 +118,7 @@ void get_max_free_col_span(MapInfo &map_info, int col, int min_row, int max_row,
     }
 }
 void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
-                      int room_size, int gate_size) {
+                      int room_size) {
     int room_w = room_size;
     int room_h = room_size;
 
@@ -199,10 +199,18 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
     for (int y = room_y-1; y >= 0; --y) {
         get_max_free_row_span(map_info, y, min_x, max_x,
                               span_start, span_length);
-        if (span_length <= gate_size)
-            break;
         min_x = span_start;
         max_x = span_start + span_length;
+
+        // Stop if area opens up after a gate
+        int num_free = 0;
+        for (int x = min_x - 1; map_info.get_room(x, y) == FREE; --x)
+            ++num_free;
+        for (int x = max_x; map_info.get_room(x, y) == FREE; ++x)
+            ++num_free;
+        if (span_length <= 2*num_free)
+            break;
+
         if (span_start == room_x) {
             --min_y_l;
         }
@@ -220,10 +228,18 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
     for (int y = room_y + room_h; y < map_info.height; ++y) {
         get_max_free_row_span(map_info, y, min_x, max_x,
                               span_start, span_length);
-        if (span_length <= gate_size)
-            break;
         min_x = span_start;
         max_x = span_start + span_length;
+
+        // Stop if area opens up after a gate
+        int num_free = 0;
+        for (int x = min_x - 1; map_info.get_room(x, y) == FREE; --x)
+            ++num_free;
+        for (int x = max_x; map_info.get_room(x, y) == FREE; ++x)
+            ++num_free;
+        if (span_length <= 2*num_free)
+            break;
+
         if (span_start == room_x) {
             ++max_y_l;
         }
@@ -240,10 +256,18 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
     for (int x = room_x-1; x >= 0; --x) {
         get_max_free_col_span(map_info, x, min_y_l, max_y_l,
                               span_start, span_length);
-        if (span_length <= gate_size)
-            break;
         min_y_l = span_start;
         max_y_l = span_start + span_length;
+
+        // Stop if area opens up after a gate
+        int num_free = 0;
+        for (int y = min_y_l - 1; map_info.get_room(x, y) == FREE; --y)
+            ++num_free;
+        for (int y = max_y_l; map_info.get_room(x, y) == FREE; ++y)
+            ++num_free;
+        if (span_length <= 2*num_free)
+            break;
+
         for (int y = min_y_l; y < max_y_l; ++y) {
             map_info.set_room(x, y, room_id);
         }
@@ -253,10 +277,18 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
     for (int x = room_x + room_w; x <= map_info.width; ++x) {
         get_max_free_col_span(map_info, x, min_y_r, max_y_r,
                               span_start, span_length);
-        if (span_length <= gate_size)
-            break;
         min_y_r = span_start;
         max_y_r = span_start + span_length;
+
+        // Stop if area opens up after a gate
+        int num_free = 0;
+        for (int y = min_y_r - 1; map_info.get_room(x, y) == FREE; --y)
+            ++num_free;
+        for (int y = max_y_r; map_info.get_room(x, y) == FREE; ++y)
+            ++num_free;
+        if (span_length <= 2*num_free)
+            break;
+
         for (int y = min_y_r; y < max_y_r; ++y) {
             map_info.set_room(x, y, room_id);
         }
@@ -264,7 +296,7 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
 
 }
 
-bool detect_room_large(MapInfo &map_info, int room_id, int min_size, int gate_size) {
+bool detect_room_large(MapInfo &map_info, int room_id, int min_size) {
     vector<vector<int> > wall_distance;
     vector<xyLoc> queue;
     xyLoc best;
@@ -313,7 +345,7 @@ bool detect_room_large(MapInfo &map_info, int room_id, int min_size, int gate_si
     int room_x = max(0, best.x - distance + 1);
     int room_y = max(0, best.y - distance + 1);
     int room_size = 2*distance - 1;
-    build_large_room(map_info, room_id, room_x, room_y, room_size, gate_size);
+    build_large_room(map_info, room_id, room_x, room_y, room_size);
     return true;
 }
 
@@ -329,7 +361,7 @@ void detect_rooms(MapInfo &map_info) {
     }
     int room_id = 0;
 
-    while (detect_room_large(map_info, room_id, 10, 5)) {
+    while (detect_room_large(map_info, room_id, 3)) {
         ++room_id;
     }
     // HACK
