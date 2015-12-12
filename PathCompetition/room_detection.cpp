@@ -122,6 +122,63 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
     int room_w = room_size;
     int room_h = room_size;
 
+    // Try to extend room upwards
+    while (true) {
+        bool blocked = false;
+        for (int x = room_x; x < room_x + room_w; ++x) {
+            if (map_info.get_room(x, room_y - 1) != FREE) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked)
+            break;
+        ++room_h;
+        --room_y;
+    }
+    // Try to extend room downwards
+    while (true) {
+        bool blocked = false;
+        for (int x = room_x; x < room_x + room_w; ++x) {
+            if (map_info.get_room(x, room_y + room_h) != FREE) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked)
+            break;
+        ++room_h;
+    }
+    // Try to extend room to left
+    while (true) {
+        bool blocked = false;
+        for (int y = room_y; y < room_y + room_h; ++y) {
+            if (map_info.get_room(room_x - 1, y) != FREE) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked)
+            break;
+        ++room_w;
+        --room_x;
+    }
+    // Try to extend room to right
+    while (true) {
+        bool blocked = false;
+        for (int y = room_y; y < room_y + room_h; ++y) {
+            if (map_info.get_room(room_x + room_w, y) != FREE) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked)
+            break;
+        ++room_w;
+    }
+
+
+
     for (int x = room_x; x < room_x + room_w; ++x) {
         for (int y = room_y; y < room_y + room_h; ++y) {
             map_info.set_room(x, y, room_id);
