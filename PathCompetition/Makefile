@@ -4,7 +4,7 @@ SOURCES = $(HEADERS:%.h=%.cpp) $(TARGET).cpp
 
 
 $(TARGET): $(HEADERS) $(SOURCES)
-	g++ -O0 -g -Wno-unused-result -o $@ $(SOURCES) -lpng12
+	g++ -O0 -g -std=c++11 -Wno-unused-result -o $@ $(SOURCES) -lpng12
 
 clean:
 	rm -f *~

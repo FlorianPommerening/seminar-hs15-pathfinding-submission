@@ -1,6 +1,7 @@
 #include "room_detection.h"
 
 #include <iostream>
+#include <functional>
 
 using namespace std;
 
@@ -75,48 +76,29 @@ bool detect_room_bjornsson(MapInfo &map_info, int room_id) {
     return true;
 }
 
-
-void get_max_free_row_span(MapInfo &map_info, int row, int min_col, int max_col,
-                           int &span_start, int &span_length) {
-    span_start = min_col;
+void get_max_free_span(int major_index, int min_minor_index, int max_minor_index,
+                       function<bool(int, int)> is_free,
+                       int &span_start, int &span_length) {
+    span_start = min_minor_index;
     span_length = 0;
-    int current_span_start = min_col;
+    int current_span_start = min_minor_index;
     bool span_running = false;
-    for (int x = min_col; x < max_col + 1; ++x) {
-        if (span_running && (x == max_col || map_info.get_room(x, row) != FREE)) {
-            int current_span_length = x - current_span_start;
+    for (int minor_index = min_minor_index; minor_index < max_minor_index + 1; ++minor_index) {
+        if (span_running &&
+                (minor_index == max_minor_index || !is_free(minor_index, major_index))) {
+            int current_span_length = minor_index - current_span_start;
             if (current_span_length > span_length) {
                 span_start = current_span_start;
                 span_length = current_span_length;
                 span_running = false;
             }
-        } else if (!span_running && map_info.get_room(x, row) == FREE) {
+        } else if (!span_running && is_free(minor_index, major_index)) {
             span_running = true;
-            current_span_start = x;
+            current_span_start = minor_index;
         }
     }
 }
 
-void get_max_free_col_span(MapInfo &map_info, int col, int min_row, int max_row,
-                           int &span_start, int &span_length) {
-    span_start = min_row;
-    span_length = 0;
-    int current_span_start = min_row;
-    bool span_running = false;
-    for (int y = min_row; y < max_row + 1; ++y) {
-        if (span_running && (y == max_row || map_info.get_room(col, y) != FREE)) {
-            int current_span_length = y - current_span_start;
-            if (current_span_length > span_length) {
-                span_start = current_span_start;
-                span_length = current_span_length;
-                span_running = false;
-            }
-        } else if (!span_running && map_info.get_room(col, y) == FREE) {
-            span_running = true;
-            current_span_start = y;
-        }
-    }
-}
 void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
                       int room_size) {
     int room_w = room_size;
@@ -197,8 +179,13 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
 
     // Try to extend room upwards
     for (int y = room_y-1; y >= 0; --y) {
-        get_max_free_row_span(map_info, y, min_x, max_x,
-                              span_start, span_length);
+        get_max_free_span(
+            y, min_x, max_x,
+            [&](int minor_index, int major_index) {
+                return map_info.get_room(minor_index, major_index) == FREE;
+            },
+            span_start, span_length);
+
         min_x = span_start;
         max_x = span_start + span_length;
 
@@ -226,8 +213,14 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
     min_x = room_x;
     max_x = room_x + room_w;
     for (int y = room_y + room_h; y < map_info.height; ++y) {
-        get_max_free_row_span(map_info, y, min_x, max_x,
-                              span_start, span_length);
+        get_max_free_span(
+            y, min_x, max_x,
+            [&](int minor_index, int major_index) {
+                return map_info.get_room(minor_index, major_index) == FREE;
+            },
+            span_start, span_length);
+
+
         min_x = span_start;
         max_x = span_start + span_length;
 
@@ -254,8 +247,12 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
 
     // Try to extend room to left
     for (int x = room_x-1; x >= 0; --x) {
-        get_max_free_col_span(map_info, x, min_y_l, max_y_l,
-                              span_start, span_length);
+        get_max_free_span(
+            x, min_y_l, max_y_l,
+            [&](int minor_index, int major_index) {
+                return map_info.get_room(major_index, minor_index) == FREE;
+            },
+            span_start, span_length);
         min_y_l = span_start;
         max_y_l = span_start + span_length;
 
@@ -275,8 +272,12 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
 
     // Try to extend room to right
     for (int x = room_x + room_w; x <= map_info.width; ++x) {
-        get_max_free_col_span(map_info, x, min_y_r, max_y_r,
-                              span_start, span_length);
+        get_max_free_span(
+            x, min_y_r, max_y_r,
+            [&](int minor_index, int major_index) {
+                return map_info.get_room(major_index, minor_index) == FREE;
+            },
+            span_start, span_length);
         min_y_r = span_start;
         max_y_r = span_start + span_length;
 
