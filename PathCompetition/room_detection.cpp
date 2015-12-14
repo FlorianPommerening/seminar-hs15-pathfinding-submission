@@ -90,8 +90,8 @@ void get_max_free_span(int major_index, int min_minor_index, int max_minor_index
             if (current_span_length > span_length) {
                 span_start = current_span_start;
                 span_length = current_span_length;
-                span_running = false;
             }
+            span_running = false;
         } else if (!span_running && is_free(minor_index, major_index)) {
             span_running = true;
             current_span_start = minor_index;
