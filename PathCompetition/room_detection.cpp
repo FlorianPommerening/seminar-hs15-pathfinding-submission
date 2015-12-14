@@ -57,7 +57,7 @@ bool detect_room_bjornsson(MapInfo &map_info, int room_id) {
                map_info.get_room(x, y-1) == room_id) {
             ++x;
         }
-        if (map_info.get_room(x, y) != FREE) {
+        if (map_info.get_room(x, y-1) != room_id) {
             break;
         }
         // Move further left until wall or opens upwards
