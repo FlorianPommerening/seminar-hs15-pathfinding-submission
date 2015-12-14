@@ -6,8 +6,6 @@
 
 #include <vector>
 
-static const double EPSILON = 10e-8;
-
 class SearchAlgorithm {
     const MapInfo *map_info;
     const xyLoc s_loc;

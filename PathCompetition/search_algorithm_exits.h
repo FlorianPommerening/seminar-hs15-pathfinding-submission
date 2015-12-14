@@ -1,12 +1,10 @@
-#ifndef SEARCHALGORITHM_H
-#define SEARCHALGORITHM_H
+#ifndef SEARCHALGORITHMEXITS_H
+#define SEARCHALGORITHMEXITS_H
 
 #include "f_based_open_list.h"
 #include "map_info.h"
 
 #include <vector>
-
-static const double EPSILON = 10e-8;
 
 class SearchAlgorithmExits {
     const MapInfo *map_info;

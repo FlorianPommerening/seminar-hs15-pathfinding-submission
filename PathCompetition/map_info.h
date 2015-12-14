@@ -9,6 +9,7 @@
 typedef std::vector<int> RoomMap;
 
 static const double SQUARE_TWO = 1.4142;
+static const double EPSILON = 10e-8;
 
 class ExitSuccesor;
 
