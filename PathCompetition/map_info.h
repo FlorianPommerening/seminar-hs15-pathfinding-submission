@@ -6,19 +6,19 @@
 #include <vector>
 
 typedef std::vector<int> RoomMap;
-typedef std::pair<xyLoc, int> Exit;
 
 struct MapInfo {
     std::vector<bool> map;
     int width;
     int height;
+    int num_rooms;
     RoomMap rooms;
-    std::vector<std::vector<Exit> > room_exits;
+    std::vector<std::vector<xyLoc>> room_exits;
 
     bool get_occupied(int x, int y) const {
         if (x < 0 || y < 0 || x >= width || y >= height)
             return true;
-        return map[x + y * width];
+        return !map[x + y * width];
     }
 
     int get_room(int x, int y) const {

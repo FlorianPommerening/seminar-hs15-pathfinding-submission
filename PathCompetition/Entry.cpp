@@ -1,6 +1,7 @@
 #include "Entry.h"
 
 #include "debug.h"
+#include "gate_detection.h"
 #include "room_detection.h"
 #include "search_algorithm.h"
 
@@ -34,6 +35,7 @@ void *PrepareForSearch(vector<bool> &bits, int w, int h, const char *filename) {
     map_info->width = w;
     map_info->height = h;
     detect_rooms(*map_info);
+    detect_gates(*map_info);
     draw_rooms("rooms.png", *map_info);
     return map_info;
 }

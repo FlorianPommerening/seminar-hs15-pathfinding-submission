@@ -1,8 +1,11 @@
 #include "room_detection.h"
 
+#include "locations.h"
+
 #include <cassert>
 #include <iostream>
 #include <functional>
+#include <vector>
 
 using namespace std;
 
@@ -323,48 +326,12 @@ void detect_rooms(MapInfo &map_info) {
         }
     }
 
-    // HACK
-    int num_no_room = 0;
-    for (int i = 0; i < map_info.map.size(); ++i){
-        if (map_info.rooms[i] == FREE) {
-            map_info.rooms[i] = room_id + 1;
-            ++num_no_room;
-        }
-    }
-    cout << "Found " << num_no_room
-         << " out of " << map_info.width * map_info.height
-         << " without a room"
-         << " (" << (num_no_room * 100) / (map_info.width * map_info.height) << "%)"
-         << endl;
-
+    /*
     while (detect_room_bjornsson(map_info, room_id)) {
         ++room_id;
     }
+    */
 
-    cout << "Found " << room_id << " rooms in total" << endl;
-
-
-    vector<int> num_gates(room_id, 0);
-    for (int x = 0; x < map_info.width; ++x) {
-        for (int y = 0; y < map_info.height; ++y) {
-            int current_room_id = map_info.get_room(x, y);
-            if (current_room_id == IMPASSABLE)
-                continue;
-            for (int suc_x = max(0, x - 1); suc_x < min(map_info.width, x + 2); ++suc_x) {
-                for (int suc_y = max(0, y - 1); suc_y < min(map_info.height, y + 2); ++suc_y) {
-                    int succ_room_id = map_info.get_room(suc_x, suc_y);
-                    if (succ_room_id != IMPASSABLE && succ_room_id != current_room_id) {
-                        ++num_gates[current_room_id];
-                    }
-                }
-            }
-        }
-    }
-    long long num_precomputations = 0;
-    for (int i = 0; i < num_gates.size(); ++i) {
-        for (int j = i+1; j < num_gates.size(); ++j) {
-                num_precomputations += num_gates[i] * num_gates[j];
-        }
-    }
-    cout << "Precomputations " << num_precomputations << endl;
+    map_info.num_rooms = room_id;
+    cout << "Found " << map_info.num_rooms << " rooms in total" << endl;
 }
