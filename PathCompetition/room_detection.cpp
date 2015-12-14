@@ -1,5 +1,6 @@
 #include "room_detection.h"
 
+#include <cassert>
 #include <iostream>
 #include <functional>
 
@@ -99,67 +100,123 @@ void get_max_free_span(int major_index, int min_minor_index, int max_minor_index
     }
 }
 
+int extend_room_in_direction(
+        int major_index_start, int direction,
+        int room_start, int room_end,
+        function<bool(int, int)> is_free,
+        function<bool(int, int, int)> stop,
+        function<void(int, int)> set_room,
+        int &room_size_at_room_start,
+        int &room_size_at_room_end) {
+    assert(direction == 1 || direction == -1);
+    int previous_span_length = room_end - room_start;
+    int span_start;
+    int span_length;
+    int min_span_start = room_start;
+    int max_span_end = room_end;
+
+    int major_index = major_index_start;
+    while (true) {
+        get_max_free_span(
+            major_index, min_span_start, max_span_end, is_free,
+            span_start, span_length);
+
+        min_span_start = span_start;
+        max_span_end = span_start + span_length;
+
+        int num_free = 0;
+        for (int minor_index = min_span_start - 1; is_free(minor_index, major_index); --minor_index)
+            ++num_free;
+        for (int minor_index = max_span_end; is_free(minor_index, major_index); ++minor_index)
+            ++num_free;
+        if (stop(previous_span_length, span_length, num_free))
+            break;
+        previous_span_length = span_length;
+
+        if (span_start == room_start) {
+            room_size_at_room_start = major_index;
+        }
+        if (span_start + span_length == room_end) {
+            room_size_at_room_end = major_index;
+        }
+
+        for (int minor_index = min_span_start; minor_index < max_span_end; ++minor_index) {
+            set_room(minor_index, major_index);
+        }
+        major_index += direction;
+    }
+    // Undo overcounting in last iteration
+    major_index -= direction;
+    return major_index;
+}
+
+void extend_room_in_all_directions(
+        MapInfo &map_info, int room_id,
+        int &room_x, int &room_y, int &room_w, int &room_h,
+        function<bool(int, int, int)> stop) {
+    function<bool(int, int)> is_free =
+    [&](int x, int y) {
+        return map_info.get_room(x, y) == FREE;
+    };
+
+    function<bool(int, int)> is_free_transposed =
+    [&](int y, int x) {
+        return map_info.get_room(x, y) == FREE;
+    };
+
+    function<void(int, int)> set_room =
+    [&](int x, int y) {
+        map_info.set_room(x, y, room_id);
+    };
+
+    function<void(int, int)> set_room_transposed =
+    [&](int y, int x) {
+        map_info.set_room(x, y, room_id);
+    };
+    int unused_output;
+    int min_y_l = room_y;
+    int max_y_l = room_y + room_h - 1;
+    int min_y_r = room_y;
+    int max_y_r = room_y + room_h - 1;
+
+    // Try to extend room upwards
+    int min_y = extend_room_in_direction(
+        room_y - 1, -1,
+        room_x, room_x + room_w,
+        is_free, stop, set_room,
+        min_y_l, min_y_r);
+
+    // Try to extend room downwards
+    int max_y = extend_room_in_direction(
+        room_y + room_h, 1,
+        room_x, room_x + room_w,
+        is_free, stop, set_room,
+        max_y_l, max_y_r);
+
+    // Try to extend room to left
+    int min_x = extend_room_in_direction(
+        room_x - 1, -1,
+        min_y_l, max_y_l + 1,
+        is_free_transposed, stop, set_room_transposed,
+        unused_output, unused_output);
+
+    // Try to extend room to right
+    int max_x = extend_room_in_direction(
+        room_x + room_w, 1,
+        min_y_r, max_y_r + 1,
+        is_free_transposed, stop, set_room_transposed,
+        unused_output, unused_output);
+
+    room_x = min_x;
+    room_y = min_y;
+    room_w = max_x - min_x + 1;
+    room_h = max_y - min_y + 1;
+}
+
 void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
                       int room_size) {
     int room_w = room_size;
     int room_h = room_size;
-
-    // Try to extend room upwards
-    while (true) {
-        bool blocked = false;
-        for (int x = room_x; x < room_x + room_w; ++x) {
-            if (map_info.get_room(x, room_y - 1) != FREE) {
-                blocked = true;
-                break;
-            }
-        }
-        if (blocked)
-            break;
-        ++room_h;
-        --room_y;
-    }
-    // Try to extend room downwards
-    while (true) {
-        bool blocked = false;
-        for (int x = room_x; x < room_x + room_w; ++x) {
-            if (map_info.get_room(x, room_y + room_h) != FREE) {
-                blocked = true;
-                break;
-            }
-        }
-        if (blocked)
-            break;
-        ++room_h;
-    }
-    // Try to extend room to left
-    while (true) {
-        bool blocked = false;
-        for (int y = room_y; y < room_y + room_h; ++y) {
-            if (map_info.get_room(room_x - 1, y) != FREE) {
-                blocked = true;
-                break;
-            }
-        }
-        if (blocked)
-            break;
-        ++room_w;
-        --room_x;
-    }
-    // Try to extend room to right
-    while (true) {
-        bool blocked = false;
-        for (int y = room_y; y < room_y + room_h; ++y) {
-            if (map_info.get_room(room_x + room_w, y) != FREE) {
-                blocked = true;
-                break;
-            }
-        }
-        if (blocked)
-            break;
-        ++room_w;
-    }
-
-
 
     for (int x = room_x; x < room_x + room_w; ++x) {
         for (int y = room_y; y < room_y + room_h; ++y) {
@@ -167,134 +224,22 @@ void build_large_room(MapInfo &map_info, int room_id, int room_x, int room_y,
         }
     }
 
-    int min_x = room_x;
-    int max_x = room_x + room_w;
-    int min_y_l = room_y;
-    int max_y_l = room_y + room_h;
-    int min_y_r = room_y;
-    int max_y_r = room_y + room_h;
+    // Stop if area gets smaller
+    function<bool(int, int, int)> stop_on_smaller_span =
+    [&](int previous_span_length, int span_length, int /*num_free*/) {
+        return (span_length < previous_span_length);
+    };
+    extend_room_in_all_directions(
+        map_info, room_id, room_x, room_y, room_w, room_h, stop_on_smaller_span);
 
-    int span_start;
-    int span_length;
+    // Stop if area opens up after a gate
+    function<bool(int, int, int)> stop_on_gate =
+    [&](int /*previous_span_length*/, int span_length, int num_free) {
+        return (span_length <= 2*num_free);
+    };
 
-    // Try to extend room upwards
-    for (int y = room_y-1; y >= 0; --y) {
-        get_max_free_span(
-            y, min_x, max_x,
-            [&](int minor_index, int major_index) {
-                return map_info.get_room(minor_index, major_index) == FREE;
-            },
-            span_start, span_length);
-
-        min_x = span_start;
-        max_x = span_start + span_length;
-
-        // Stop if area opens up after a gate
-        int num_free = 0;
-        for (int x = min_x - 1; map_info.get_room(x, y) == FREE; --x)
-            ++num_free;
-        for (int x = max_x; map_info.get_room(x, y) == FREE; ++x)
-            ++num_free;
-        if (span_length <= 2*num_free)
-            break;
-
-        if (span_start == room_x) {
-            --min_y_l;
-        }
-        if (span_start + span_length == room_x + room_w) {
-            --min_y_r;
-        }
-        for (int x = min_x; x < max_x; ++x) {
-            map_info.set_room(x, y, room_id);
-        }
-    }
-
-    // Try to extend room downwards
-    min_x = room_x;
-    max_x = room_x + room_w;
-    for (int y = room_y + room_h; y < map_info.height; ++y) {
-        get_max_free_span(
-            y, min_x, max_x,
-            [&](int minor_index, int major_index) {
-                return map_info.get_room(minor_index, major_index) == FREE;
-            },
-            span_start, span_length);
-
-
-        min_x = span_start;
-        max_x = span_start + span_length;
-
-        // Stop if area opens up after a gate
-        int num_free = 0;
-        for (int x = min_x - 1; map_info.get_room(x, y) == FREE; --x)
-            ++num_free;
-        for (int x = max_x; map_info.get_room(x, y) == FREE; ++x)
-            ++num_free;
-        if (span_length <= 2*num_free)
-            break;
-
-        if (span_start == room_x) {
-            ++max_y_l;
-        }
-        if (span_start + span_length == room_x + room_w) {
-            ++max_y_r;
-        }
-        for (int x = min_x; x < max_x; ++x) {
-            map_info.set_room(x, y, room_id);
-        }
-    }
-
-
-    // Try to extend room to left
-    for (int x = room_x-1; x >= 0; --x) {
-        get_max_free_span(
-            x, min_y_l, max_y_l,
-            [&](int minor_index, int major_index) {
-                return map_info.get_room(major_index, minor_index) == FREE;
-            },
-            span_start, span_length);
-        min_y_l = span_start;
-        max_y_l = span_start + span_length;
-
-        // Stop if area opens up after a gate
-        int num_free = 0;
-        for (int y = min_y_l - 1; map_info.get_room(x, y) == FREE; --y)
-            ++num_free;
-        for (int y = max_y_l; map_info.get_room(x, y) == FREE; ++y)
-            ++num_free;
-        if (span_length <= 2*num_free)
-            break;
-
-        for (int y = min_y_l; y < max_y_l; ++y) {
-            map_info.set_room(x, y, room_id);
-        }
-    }
-
-    // Try to extend room to right
-    for (int x = room_x + room_w; x <= map_info.width; ++x) {
-        get_max_free_span(
-            x, min_y_r, max_y_r,
-            [&](int minor_index, int major_index) {
-                return map_info.get_room(major_index, minor_index) == FREE;
-            },
-            span_start, span_length);
-        min_y_r = span_start;
-        max_y_r = span_start + span_length;
-
-        // Stop if area opens up after a gate
-        int num_free = 0;
-        for (int y = min_y_r - 1; map_info.get_room(x, y) == FREE; --y)
-            ++num_free;
-        for (int y = max_y_r; map_info.get_room(x, y) == FREE; ++y)
-            ++num_free;
-        if (span_length <= 2*num_free)
-            break;
-
-        for (int y = min_y_r; y < max_y_r; ++y) {
-            map_info.set_room(x, y, room_id);
-        }
-    }
-
+    extend_room_in_all_directions(
+        map_info, room_id, room_x, room_y, room_w, room_h, stop_on_gate);
 }
 
 bool detect_room_large(MapInfo &map_info, int room_id, int min_size) {
