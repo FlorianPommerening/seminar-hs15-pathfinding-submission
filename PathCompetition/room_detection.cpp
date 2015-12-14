@@ -338,13 +338,15 @@ bool detect_room_large(MapInfo &map_info, int room_id, int min_size) {
         }
         queue.swap(next_queue);
     }
+    // There were no nodes with the last distance value.
+    --distance;
 
     if (distance < min_size)
         return false;
 
-    int room_x = max(0, best.x - distance + 1);
-    int room_y = max(0, best.y - distance + 1);
-    int room_size = 2*distance - 1;
+    int room_x = best.x - distance + 1;
+    int room_y = best.y - distance + 1;
+    int room_size = 2*(distance - 1) + 1;
     build_large_room(map_info, room_id, room_x, room_y, room_size);
     return true;
 }
