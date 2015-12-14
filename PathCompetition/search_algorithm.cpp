@@ -45,7 +45,7 @@ bool SearchAlgorithm::search() {
 
         for (int i = 0 ; i < succ.size(); ++i) {
             succ[i].f_value = succ[i].g_value + get_octile_heuristic_value(succ[i]);
-            if (visited[GetIndex(succ[i].xy_loc)] > -1) {
+            if (visited[GetIndex(succ[i].xy_loc)] == -1) {
                 q.insert(succ[i]);
             }
         }
