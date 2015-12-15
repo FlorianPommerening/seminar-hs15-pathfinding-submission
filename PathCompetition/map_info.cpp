@@ -2,6 +2,34 @@
 
 using namespace std;
 
+template<typename T>
+ostream &operator<<(ostream &os, const vector<vector<T>> &lists) {
+    os << lists.size() << endl;
+    for (const auto &list : lists) {
+        os << list.size() << " ";
+        for (const auto &value : list) {
+            os << value << " ";
+        }
+        os << endl;
+    }
+    os << endl;
+}
+
+template<typename T>
+istream &operator>>(istream &is, vector<vector<T>> &lists) {
+    int num_lists;
+    is >> num_lists;
+    lists.resize(num_lists);
+    for (int i = 0; i < num_lists; ++i) {
+        int num_list_i;
+        is >> num_list_i;
+        lists[i].resize(num_list_i);
+        for (int j = 0; j < num_list_i; ++j) {
+            is >> lists[i][j];
+        }
+    }
+}
+
 ostream &operator<<(ostream &os, const Exit &e) {
     os << e.id << " "
        << e.room_id << " "
@@ -47,15 +75,7 @@ ostream &operator<<(ostream& os, const MapInfo &m) {
     }
     os << endl;
 
-    os << m.room_exits.size() << endl;
-    for (const auto &r_exits : m.room_exits) {
-        os << r_exits.size() << " ";
-        for (int exit_id : r_exits) {
-            os << exit_id << " ";
-        }
-        os << endl;
-    }
-    os << endl;
+    os << m.room_exits;
 
     os << m.exits.size() << endl;
     for (const auto &e : m.exits) {
@@ -63,15 +83,8 @@ ostream &operator<<(ostream& os, const MapInfo &m) {
     }
     os << endl;
 
-    os << m.room_successors.size() << endl;
-    for (const auto &r_successors : m.room_successors) {
-        os << r_successors.size() << " ";
-        for (int succ_id : r_successors) {
-            os << succ_id << " ";
-        }
-        os << endl;
-    }
-    os << endl;
+    os << m.room_successors;
+    os << m.shortest_distances_to_room;
     return os;
 }
 
@@ -90,17 +103,7 @@ istream &operator>>(istream& is, MapInfo &m) {
         is >> m.rooms[i];
     }
 
-    int num_room_exits;
-    is >> num_room_exits;
-    m.room_exits.resize(num_room_exits);
-    for (int i = 0; i < num_room_exits; ++i) {
-        int num_room_exits_i;
-        is >> num_room_exits_i;
-        m.room_exits[i].resize(num_room_exits_i);
-        for (int j = 0; j < num_room_exits_i; ++j) {
-            is >> m.room_exits[i][j];
-        }
-    }
+    is >> m.room_exits;
 
     int num_exits;
     is >> num_exits;
@@ -109,17 +112,8 @@ istream &operator>>(istream& is, MapInfo &m) {
         is >> m.exits[i];
     }
 
-    int num_room_successors;
-    is >> num_room_successors;
-    m.room_successors.resize(num_room_successors);
-    for (int i = 0; i < num_room_successors; ++i) {
-        int num_room_successors_i;
-        is >> num_room_successors_i;
-        m.room_successors[i].resize(num_room_successors_i);
-        for (int j = 0; j < num_room_successors_i; ++j) {
-            is >> m.room_successors[i][j];
-        }
-    }
+    is >> m.room_successors;
+    is >> m.shortest_distances_to_room;
 
     return is;
 }

@@ -46,18 +46,20 @@ bool SearchAlgorithmExits::search() {
                 continue;
             }
 
+            /*
+            // Not needed if room heuristic is used
             if (succ.dead_end_unless_goal_room_id >= 0 &&
                 succ.dead_end_unless_goal_room_id != goal_room_id) {
                 continue;
             }
+            */
 
             double succ_g = node.g_value + succ.distance;
             SearchNode &succ_node = search_space.get_node(succ.id);
             if (succ_node.status == NodeStatus::UNINITIALIZED ||
                 succ_g < succ_node.g_value) {
                 double succ_h = 0;
-                const Exit &succ_exit = map_info.exits[succ.id];
-                succ_h = get_octile_heuristic_value(succ_exit.location);
+                succ_h = get_heuristic_value(map_info.exits[succ.id]);
                 succ_node.open(node_id, succ_g, succ_h);
                 q.insert(succ_node.f_value, succ.id);
             }
@@ -81,10 +83,10 @@ void SearchAlgorithmExits::add_successors_of_start(SearchSpace &search_space, Pa
     int goal_node_id = search_space.get_goal_node_id();
     int initial_room_id = map_info.get_room(s_loc.x, s_loc.y);
     for (int exit_id : map_info.room_exits[initial_room_id]) {
-        Exit e = map_info.exits[exit_id];
+        const Exit &e = map_info.exits[exit_id];
         double g = compute_room_path_cost(map_info, s_loc, e.location);
         SearchNode &node = search_space.get_node(exit_id);
-        int h = get_octile_heuristic_value(e.location);
+        int h = get_heuristic_value(e);
         node.open(initial_node_id, g, h);
         q.insert(node.f_value, exit_id);
     }
@@ -97,11 +99,12 @@ void SearchAlgorithmExits::add_successors_of_start(SearchSpace &search_space, Pa
     }
 }
 
-double SearchAlgorithmExits::get_octile_heuristic_value(xyLoc xy_loc) const {
-    int dx = abs(xy_loc.x - g_loc.x);
-    int dy = abs(xy_loc.y - g_loc.y);
+double SearchAlgorithmExits::get_heuristic_value(const Exit &e) const {
+    int dx = abs(e.location.x - g_loc.x);
+    int dy = abs(e.location.y - g_loc.y);
+    double octile = SQUARE_TWO * (min(dx,dy)) + abs(dx - dy);
 
-    return SQUARE_TWO * (min(dx,dy)) + abs(dx - dy);
+    return max(room_heuristic[e.room_id], octile);
 }
 
 void SearchAlgorithmExits::extend_path(xyLoc next_loc) {

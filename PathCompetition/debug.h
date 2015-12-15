@@ -9,5 +9,6 @@
 void draw_rooms(std::string filename, const MapInfo &map_info);
 void draw_path(std::string filename, const MapInfo &map_info,
                SearchSpace &search_space, std::vector<xyLoc> &path);
+void draw_heuristic(std::string filename, const MapInfo &map_info, int room_id);
 
 #endif

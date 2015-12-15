@@ -41,6 +41,10 @@ struct MapInfo {
     std::vector<std::vector<int>> room_exits;
     std::vector<Exit> exits;
     std::vector<std::vector<int>> room_successors;
+    /* shortest_distances_to_room[to][from] is the shortest distance from any
+       position in "from" to any position in "to". We group this way to extract
+       the heuristic easier later. */
+    std::vector<std::vector<double>> shortest_distances_to_room;
 
     bool get_occupied(int x, int y) const {
         if (x < 0 || y < 0 || x >= width || y >= height)

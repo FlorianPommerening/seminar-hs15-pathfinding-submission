@@ -7,6 +7,7 @@ HEADERS = \
     map_info.h \
     pair_open_list.h \
     room_detection.h \
+    room_heuristic_precomputation.h \
     room_paths.h \
     ScenarioLoader.h \
     search_algorithm.h \

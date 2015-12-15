@@ -122,3 +122,33 @@ void draw_path(string filename, const MapInfo &map_info, SearchSpace &search_spa
 
     image.write(filename);
 }
+
+void draw_heuristic(string filename, const MapInfo &map_info, int room_id) {
+    const vector<double> &distances = map_info.shortest_distances_to_room[room_id];
+    double min_heuristic = numeric_limits<double>::max();
+    double max_heuristic = 0;
+    for (double d : distances) {
+        if (d < numeric_limits<double>::max()) {
+            min_heuristic = min(min_heuristic, d);
+            max_heuristic = max(max_heuristic, d);
+        }
+    }
+
+    png::image<png::rgb_pixel> image(map_info.width, map_info.height);
+    for (int x = 0; x < map_info.width; ++x) {
+        for (int y = 0; y < map_info.height; ++y) {
+            if (map_info.get_occupied(x, y)) {
+                image.set_pixel(x, y, png::rgb_pixel(0,0,0));
+            } else {
+                int other_room_id = map_info.get_room(x, y);
+                double distance = distances[other_room_id];
+                double distance_scaled = (distance - min_heuristic) / (max_heuristic - min_heuristic);
+                distance_scaled = max(0.0, min(1.0, distance_scaled));
+                image.set_pixel(x, y, png::rgb_pixel(255*(1-distance_scaled),
+                                                     255*distance_scaled,
+                                                     0));
+            }
+        }
+    }
+    image.write(filename);
+}
