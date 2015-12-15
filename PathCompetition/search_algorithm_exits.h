@@ -18,14 +18,9 @@ class SearchAlgorithmExits {
     int goal_room_id;
     std::unordered_map<int, ExitSuccesor> additional_goal_room_successors;
 
-    void compute_goal_room_paths(int goal_id);
     void add_successors_of_start(SearchSpace &search_space, PairOpenList &q);
 
     double get_octile_heuristic_value(xyLoc xy_loc) const;
-    void add_successors_if_necessary(
-        SearchSpace &search_space, PairOpenList &q,
-        const std::vector<ExitSuccesor> &successors,
-        int parent_id, double parent_g);
 
     void extend_path(xyLoc next_loc);
     void extract_path(SearchSpace &search_space);

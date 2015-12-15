@@ -18,7 +18,7 @@ bool SearchAlgorithmExits::search() {
     SearchSpace search_space(map_info);
     const int GOAL_ID = search_space.get_goal_node_id();
     PairOpenList q;
-    compute_goal_room_paths(GOAL_ID);
+    goal_room_id = map_info.get_room(g_loc.x, g_loc.y);
     add_successors_of_start(search_space, q);
 
     while (!q.empty()) {
@@ -41,51 +41,33 @@ bool SearchAlgorithmExits::search() {
         node.close();
 
         Exit e = map_info.exits[node_id];
-        add_successors_if_necessary(search_space, q,
-                                    e.successors,
-                                    node_id, node.g_value);
-        if (e.room_id == goal_room_id) {
-            ExitSuccesor succ = additional_goal_room_successors[node_id];
+        for (ExitSuccesor succ : e.successors) {
+            if (succ.id == node_id) {
+                continue;
+            }
             double succ_g = node.g_value + succ.distance;
             SearchNode &succ_node = search_space.get_node(succ.id);
             if (succ_node.status == NodeStatus::UNINITIALIZED ||
                 succ_g < succ_node.g_value) {
-                succ_node.open(node_id, succ_g, 0);
+                double succ_h = 0;
+                const Exit &succ_exit = map_info.exits[succ.id];
+                succ_h = get_octile_heuristic_value(succ_exit.location);
+                succ_node.open(node_id, succ_g, succ_h);
                 q.insert(succ_node.f_value, succ.id);
+            }
+        }
+
+        if (e.room_id == goal_room_id) {
+            double succ_g = node.g_value + compute_room_path_cost(map_info, e.location, g_loc);
+            SearchNode &succ_node = search_space.get_node(GOAL_ID);
+            if (succ_node.status == NodeStatus::UNINITIALIZED ||
+                succ_g < succ_node.g_value) {
+                succ_node.open(node_id, succ_g, 0);
+                q.insert(succ_node.f_value, GOAL_ID);
             }
         }
     }
     return true; // no path returned, but we're done
-}
-
-void SearchAlgorithmExits::add_successors_if_necessary(
-        SearchSpace &search_space, PairOpenList &q,
-        const vector<ExitSuccesor> &successors,
-        int parent_id, double parent_g) {
-    for (ExitSuccesor succ : successors) {
-        if (succ.id == parent_id) {
-            continue;
-        }
-        double succ_g = parent_g + succ.distance;
-        SearchNode &succ_node = search_space.get_node(succ.id);
-        if (succ_node.status == NodeStatus::UNINITIALIZED ||
-            succ_g < succ_node.g_value) {
-            double succ_h = 0;
-            const Exit &succ_exit = map_info.exits[succ.id];
-            succ_h = get_octile_heuristic_value(succ_exit.location);
-            succ_node.open(parent_id, succ_g, succ_h);
-            q.insert(succ_node.f_value, succ.id);
-        }
-    }
-}
-
-void SearchAlgorithmExits::compute_goal_room_paths(int goal_id) {
-    goal_room_id = map_info.get_room(g_loc.x, g_loc.y);
-    for (int exit_id : map_info.room_exits[goal_room_id]) {
-        Exit e = map_info.exits[exit_id];
-        double cost = compute_room_path_cost(map_info, e.location, g_loc);
-        additional_goal_room_successors[exit_id] = {goal_id, cost};
-    }
 }
 
 void SearchAlgorithmExits::add_successors_of_start(SearchSpace &search_space, PairOpenList &q) {
