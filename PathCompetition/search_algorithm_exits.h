@@ -3,6 +3,7 @@
 
 #include "map_info.h"
 
+#include <unordered_map>
 #include <vector>
 
 class PairOpenList;
@@ -15,7 +16,7 @@ class SearchAlgorithmExits {
     std::vector<xyLoc> &path;
 
     int goal_room_id;
-    std::vector<ExitSuccesor> additional_goal_room_successors;
+    std::unordered_map<int, ExitSuccesor> additional_goal_room_successors;
 
     void compute_goal_room_paths(int goal_id);
     void add_successors_of_start(SearchSpace &search_space, PairOpenList &q);
