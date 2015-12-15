@@ -23,11 +23,11 @@ istream &operator>>(istream &is, Exit &e) {
 }
 
 ostream &operator<<(ostream &os, const ExitSuccesor &s) {
-    os << s.succ_id << " " << s.distance << endl;
+    os << s.id << " " << s.distance << endl;
 }
 
 istream &operator>>(istream &is, ExitSuccesor &s) {
-    is >> s.succ_id >> s.distance;
+    is >> s.id >> s.distance;
 }
 
 ostream &operator<<(ostream& os, const MapInfo &m) {
@@ -95,7 +95,7 @@ istream &operator>>(istream& is, MapInfo &m) {
     int num_exits;
     is >> num_exits;
     m.exits.resize(num_exits);
-    for (int i = 0; i < num_room_exits; ++i) {
+    for (int i = 0; i < num_exits; ++i) {
         is >> m.exits[i];
     }
 

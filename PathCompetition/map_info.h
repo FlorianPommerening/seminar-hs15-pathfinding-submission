@@ -24,7 +24,7 @@ struct Exit {
 };
 
 struct ExitSuccesor {
-    int succ_id;
+    int id;
     double distance;
 
     friend std::ostream& operator<<(std::ostream& os, const ExitSuccesor& dt);

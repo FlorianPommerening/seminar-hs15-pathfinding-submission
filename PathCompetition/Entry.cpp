@@ -56,6 +56,6 @@ void *PrepareForSearch(vector<bool> &bits, int w, int h, const char *filename) {
 
 bool GetPath(void *data, xyLoc s_loc, xyLoc g_loc, vector<xyLoc> &path) {
     MapInfo *map_info = static_cast<MapInfo *>(data);
-    SearchAlgorithmExits algo(map_info, s_loc, g_loc, path);
+    SearchAlgorithmExits algo(*map_info, s_loc, g_loc, path);
     return algo.search();
 }

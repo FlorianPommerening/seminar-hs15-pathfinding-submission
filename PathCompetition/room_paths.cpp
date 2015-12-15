@@ -35,7 +35,7 @@ bool try_diagonal_successor(const MapInfo &map_info, xyLoc xy_loc, int delta_x, 
 }
 
 void compute_greedy_room_path(const MapInfo &map_info, xyLoc start, xyLoc goal,
-                              function<void(xyLoc, int)> handle_successor) {
+                              function<void(xyLoc, double)> handle_successor) {
     int room_id = map_info.get_room(start.x, start.y);
     assert(map_info.get_room(goal.x, goal.y) == room_id);
     xyLoc current = start;

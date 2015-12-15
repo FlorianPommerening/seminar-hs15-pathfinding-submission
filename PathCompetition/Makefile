@@ -1,5 +1,19 @@
 TARGET = main
-HEADERS = Entry.h ScenarioLoader.h Timer.h f_based_open_list.h search_algorithm.h gate_detection.h room_detection.h room_paths.h map_info.h search_algorithm_exits.h debug.h
+HEADERS = \
+    debug.h \
+    Entry.h \
+    f_based_open_list.h \
+    gate_detection.h \
+    map_info.h \
+    pair_open_list.h \
+    room_detection.h \
+    room_paths.h \
+    ScenarioLoader.h \
+    search_algorithm.h \
+    search_algorithm_exits.h \
+    search_space.h \
+    Timer.h \
+
 SOURCES = $(HEADERS:%.h=%.cpp) $(TARGET).cpp
 
 

@@ -1,36 +1,41 @@
 #ifndef SEARCHALGORITHMEXITS_H
 #define SEARCHALGORITHMEXITS_H
 
-#include "f_based_open_list.h"
 #include "map_info.h"
 
 #include <vector>
 
+class PairOpenList;
+class SearchSpace;
+
 class SearchAlgorithmExits {
-    const MapInfo *map_info;
+    const MapInfo &map_info;
     const xyLoc s_loc;
     const xyLoc g_loc;
     std::vector<xyLoc> &path;
+
+    int goal_room_id;
+    std::vector<ExitSuccesor> additional_goal_room_successors;
+
+    void compute_goal_room_paths(int goal_id);
+    void add_successors_of_start(SearchSpace &search_space, PairOpenList &q);
+
+    double get_octile_heuristic_value(xyLoc xy_loc) const;
+    void add_successors_if_necessary(
+        SearchSpace &search_space, PairOpenList &q,
+        const std::vector<ExitSuccesor> &successors,
+        int parent_id, double parent_g);
+
+    void extend_path(xyLoc next_loc);
+    void extract_path(SearchSpace &search_space);
+
 public:
-    SearchAlgorithmExits(MapInfo *map_info, xyLoc s_loc, xyLoc g_loc,
+    SearchAlgorithmExits(MapInfo &map_info, xyLoc s_loc, xyLoc g_loc,
                          std::vector<xyLoc> &path)
         : map_info(map_info), s_loc(s_loc), g_loc(g_loc), path(path) {
     }
 
     bool search();
-
-private:
-    int GetIndex(xyLoc s) {
-        return s.y * map_info->width + s.x;
-    }
-
-    double get_octile_heuristic_value(Node& succ) const;
-    void GetAllSuccessors(const Node &node, std::vector<Node> &succ);
-    // generate a straight successor (if legal)
-    void try_straight_successor(const Node &node, int delta_x, int delta_y, std::vector<Node> &succ);
-    // generate a diagonal successor (if legal)
-    void try_diagonal_successor(const Node &node, int delta_x, int delta_y, std::vector<Node> &succ);
-    void ExtractPath(xyLoc end, const std::vector<double> &visited, std::vector<xyLoc> &finalPath);
 };
 
 
