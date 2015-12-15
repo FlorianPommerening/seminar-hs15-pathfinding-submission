@@ -46,13 +46,11 @@ bool SearchAlgorithmExits::search() {
                 continue;
             }
 
-            /*
-            // ignoring these successors reduces expanded nodes but takes too much time.
             if (succ.dead_end_unless_goal_room_id >= 0 &&
                 succ.dead_end_unless_goal_room_id != goal_room_id) {
                 continue;
             }
-            */
+
             double succ_g = node.g_value + succ.distance;
             SearchNode &succ_node = search_space.get_node(succ.id);
             if (succ_node.status == NodeStatus::UNINITIALIZED ||
