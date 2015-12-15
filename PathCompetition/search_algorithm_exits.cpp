@@ -3,13 +3,13 @@
 #include "pair_open_list.h"
 #include "room_paths.h"
 #include "search_space.h"
+#include "debug.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <iostream>
-#include <png++/png.hpp>
 #include <sstream>
 
 using namespace std;
@@ -129,50 +129,12 @@ void SearchAlgorithmExits::extract_path(SearchSpace &search_space) {
 
     reverse(path.begin(), path.end());
 
-
     /*
     // HACK
     static int num_path = 0;
-    png::image<png::rgb_pixel> image(map_info.width, map_info.height);
-
-    for (int x = 0; x < map_info.width; ++x) {
-        for (int y = 0; y < map_info.height; ++y) {
-            if (map_info.get_occupied(x, y)) {
-                image.set_pixel(x, y, png::rgb_pixel(0,0,0));
-            } else {
-                image.set_pixel(x, y, png::rgb_pixel(255,255,255));
-            }
-        }
-    }
-
-    int num_uninitialized = 0;
-    int num_open = 0;
-    int num_closed = 0;
-    for (const Exit &e : map_info.exits) {
-        SearchNode &node = search_space.get_node(e.id);
-        if (node.status == NodeStatus::UNINITIALIZED) {
-            ++num_uninitialized;
-            image.set_pixel(e.location.x, e.location.y, png::rgb_pixel(0,255,0));
-        } else if (node.status == NodeStatus::OPEN) {
-            ++num_open;
-            image.set_pixel(e.location.x, e.location.y, png::rgb_pixel(255,0,0));
-        } else {
-            ++num_closed;
-            image.set_pixel(e.location.x, e.location.y, png::rgb_pixel(0,0,255));
-        }
-    }
-    cout << "Uninitilized " << num_uninitialized << endl;
-    cout << "Open         " << num_open << endl;
-    cout << "Closed       " << num_closed << endl;
-
-    for (xyLoc l : path) {
-        image.set_pixel(l.x, l.y, png::rgb_pixel(255,0,255));
-    }
-
     ostringstream oss;
     oss << "expanded_" << num_path++ << ".png";
-    image.write(oss.str());
-
+    draw_path(oss.str(), map_info, search_space, path);
     */
 }
 

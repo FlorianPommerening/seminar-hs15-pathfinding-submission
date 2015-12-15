@@ -71,7 +71,7 @@ png::rgb_pixel DISSIMILAR_COLORS[63] = {
     png::rgb_pixel(232, 94, 190)
 };
 
-void draw_rooms(const char *filename, const MapInfo &map_info) {
+void draw_rooms(string filename, const MapInfo &map_info) {
     png::image<png::rgb_pixel> image(map_info.width, map_info.height);
 
     for (int x = 0; x < map_info.width; ++x) {
@@ -83,3 +83,42 @@ void draw_rooms(const char *filename, const MapInfo &map_info) {
     image.write(filename);
 }
 
+void draw_path(string filename, const MapInfo &map_info, SearchSpace &search_space, vector<xyLoc> &path) {
+    png::image<png::rgb_pixel> image(map_info.width, map_info.height);
+
+    for (int x = 0; x < map_info.width; ++x) {
+        for (int y = 0; y < map_info.height; ++y) {
+            if (map_info.get_occupied(x, y)) {
+                image.set_pixel(x, y, png::rgb_pixel(0,0,0));
+            } else {
+                image.set_pixel(x, y, png::rgb_pixel(255,255,255));
+            }
+        }
+    }
+
+    int num_uninitialized = 0;
+    int num_open = 0;
+    int num_closed = 0;
+    for (const Exit &e : map_info.exits) {
+        SearchNode &node = search_space.get_node(e.id);
+        if (node.status == NodeStatus::UNINITIALIZED) {
+            ++num_uninitialized;
+            image.set_pixel(e.location.x, e.location.y, png::rgb_pixel(0,255,0));
+        } else if (node.status == NodeStatus::OPEN) {
+            ++num_open;
+            image.set_pixel(e.location.x, e.location.y, png::rgb_pixel(255,0,0));
+        } else {
+            ++num_closed;
+            image.set_pixel(e.location.x, e.location.y, png::rgb_pixel(0,0,255));
+        }
+    }
+    cout << "Uninitilized " << num_uninitialized << endl;
+    cout << "Open         " << num_open << endl;
+    cout << "Closed       " << num_closed << endl;
+
+    for (xyLoc l : path) {
+        image.set_pixel(l.x, l.y, png::rgb_pixel(255,0,255));
+    }
+
+    image.write(filename);
+}
