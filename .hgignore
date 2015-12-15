@@ -1,3 +1,4 @@
 syntax: glob
 PathCompetition/main
 PathCompetition/pathfinding.*
+PathCompetition/*.png
