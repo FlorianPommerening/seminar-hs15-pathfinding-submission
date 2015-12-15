@@ -55,6 +55,8 @@ void ExitPathComputer::detect_gates() {
                         continue;
                     int succ_room_id = map_info.get_room(suc_x, suc_y);
                     if (!map_info.get_occupied(suc_x, suc_y) &&
+                            !map_info.get_occupied(x, suc_y) &&
+                            !map_info.get_occupied(suc_x, y) &&
                             succ_room_id != current_room_id) {
                         int current_exit_id = get_exit(x, y, current_room_id);
                         int succ_exit_id = get_exit(suc_x, suc_y, succ_room_id);
