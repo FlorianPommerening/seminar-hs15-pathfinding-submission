@@ -62,6 +62,16 @@ ostream &operator<<(ostream& os, const MapInfo &m) {
         os << e;
     }
     os << endl;
+
+    os << m.room_successors.size() << endl;
+    for (const auto &r_successors : m.room_successors) {
+        os << r_successors.size() << " ";
+        for (int succ_id : r_successors) {
+            os << succ_id << " ";
+        }
+        os << endl;
+    }
+    os << endl;
     return os;
 }
 
@@ -97,6 +107,18 @@ istream &operator>>(istream& is, MapInfo &m) {
     m.exits.resize(num_exits);
     for (int i = 0; i < num_exits; ++i) {
         is >> m.exits[i];
+    }
+
+    int num_room_successors;
+    is >> num_room_successors;
+    m.room_successors.resize(num_room_successors);
+    for (int i = 0; i < num_room_successors; ++i) {
+        int num_room_successors_i;
+        is >> num_room_successors_i;
+        m.room_successors[i].resize(num_room_successors_i);
+        for (int j = 0; j < num_room_successors_i; ++j) {
+            is >> m.room_successors[i][j];
+        }
     }
 
     return is;

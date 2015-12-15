@@ -39,6 +39,7 @@ struct MapInfo {
     RoomMap rooms;
     std::vector<std::vector<int>> room_exits;
     std::vector<Exit> exits;
+    std::vector<std::vector<int>> room_successors;
 
     bool get_occupied(int x, int y) const {
         if (x < 0 || y < 0 || x >= width || y >= height)

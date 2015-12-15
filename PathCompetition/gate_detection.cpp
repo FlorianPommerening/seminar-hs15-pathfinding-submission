@@ -2,6 +2,7 @@
 #include "room_paths.h"
 
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 
 using namespace std;
@@ -44,6 +45,8 @@ void ExitPathComputer::detect_gates() {
     map_info.room_exits.clear();
     map_info.room_exits.resize(map_info.num_rooms);
 
+    vector<unordered_set<int>> room_successors(map_info.num_rooms);
+
     for (int x = 0; x < map_info.width; ++x) {
         for (int y = 0; y < map_info.height; ++y) {
             if (map_info.get_occupied(x, y))
@@ -62,11 +65,16 @@ void ExitPathComputer::detect_gates() {
                         int succ_exit_id = get_exit(suc_x, suc_y, succ_room_id);
                         double cost = (suc_x == x || suc_y == y)? 1 : SQUARE_TWO;
                         create_transition(current_exit_id, succ_exit_id, cost);
+                        room_successors[current_room_id].insert(succ_room_id);
                     }
                 }
             }
         }
     }
+    for (const auto &successors : room_successors) {
+        map_info.room_successors.emplace_back(successors.begin(), successors.end());
+    }
+
     cout << "computing room paths for " << map_info.num_rooms << " rooms" << endl;
     // Transitions within room;
     for (const auto &exit_ids : map_info.room_exits) {
