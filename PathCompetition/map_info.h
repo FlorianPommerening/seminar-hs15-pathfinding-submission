@@ -26,6 +26,7 @@ struct Exit {
 struct ExitSuccesor {
     int id;
     double distance;
+    int dead_end_unless_goal_room_id;
 
     friend std::ostream& operator<<(std::ostream& os, const ExitSuccesor& dt);
     friend std::istream& operator>>(std::istream& os, ExitSuccesor& dt);

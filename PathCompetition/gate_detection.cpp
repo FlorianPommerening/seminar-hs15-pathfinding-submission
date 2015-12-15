@@ -37,7 +37,7 @@ int ExitPathComputer::get_exit(int x, int y, int room_id) {
 
 void ExitPathComputer::create_transition(int from_exit_id, int to_exit_id, double cost) {
     Exit &from_exit = map_info.exits[from_exit_id];
-    from_exit.successors.push_back({to_exit_id, cost});
+    from_exit.successors.push_back({to_exit_id, cost, -1});
 }
 
 void ExitPathComputer::detect_gates() {
@@ -71,8 +71,21 @@ void ExitPathComputer::detect_gates() {
             }
         }
     }
-    for (const auto &successors : room_successors) {
+    for (int room_id = 0; room_id < map_info.num_rooms; ++room_id) {
+        const unordered_set<int> &successors = room_successors[room_id];
         map_info.room_successors.emplace_back(successors.begin(), successors.end());
+        if (successors.size() == 1) {
+            for (int e_id : map_info.room_exits[room_id]) {
+                // Mark transitions coming into this room as potential dead ends
+                for (const ExitSuccesor &succ : map_info.exits[e_id].successors) {
+                    for (ExitSuccesor &succ_succ : map_info.exits[succ.id].successors) {
+                        if (map_info.exits[succ_succ.id].room_id == room_id) {
+                            succ_succ.dead_end_unless_goal_room_id = room_id;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     cout << "computing room paths for " << map_info.num_rooms << " rooms" << endl;

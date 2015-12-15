@@ -23,11 +23,11 @@ istream &operator>>(istream &is, Exit &e) {
 }
 
 ostream &operator<<(ostream &os, const ExitSuccesor &s) {
-    os << s.id << " " << s.distance << endl;
+    os << s.id << " " << s.distance << " " << s.dead_end_unless_goal_room_id << endl;
 }
 
 istream &operator>>(istream &is, ExitSuccesor &s) {
-    is >> s.id >> s.distance;
+    is >> s.id >> s.distance >> s.dead_end_unless_goal_room_id;
 }
 
 ostream &operator<<(ostream& os, const MapInfo &m) {
