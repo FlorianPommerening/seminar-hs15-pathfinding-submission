@@ -69,7 +69,7 @@ void SearchAlgorithmExits::add_successors_if_necessary(
         if (succ_node.status == NodeStatus::UNINITIALIZED ||
             succ_g < succ_node.g_value) {
             double succ_h = 0;
-            Exit succ_exit = map_info.exits[succ.id];
+            const Exit &succ_exit = map_info.exits[succ.id];
             succ_h = get_octile_heuristic_value(succ_exit.location);
             succ_node.open(parent_id, succ_g, succ_h);
             q.insert(succ_node.f_value, succ.id);
