@@ -54,9 +54,8 @@ bool SearchAlgorithmExits::search() {
             double succ_g = node.g_value + succ.distance;
             SearchNode &succ_node = search_space.get_node(succ.id);
             if (succ_node.status == NodeStatus::UNINITIALIZED ||
-                succ_g + EPSILON < succ_node.g_value) {
-                double succ_h = 0;
-                succ_h = get_heuristic_value(map_info.exits[succ.id]);
+                (succ_node.status == NodeStatus::OPEN && succ_g + EPSILON < succ_node.g_value)) {
+                double succ_h = get_heuristic_value(map_info.exits[succ.id]);
                 succ_node.open(node_id, succ_g, succ_h);
                 q.insert(succ_node.f_value, succ.id);
             }
@@ -101,7 +100,7 @@ double SearchAlgorithmExits::get_heuristic_value(const Exit &e) const {
     int dy = abs(e.location.y - g_loc.y);
     double octile = SQUARE_TWO * (min(dx,dy)) + abs(dx - dy);
 
-    return max(room_heuristic[e.room_id], octile);
+    return octile; // max(room_heuristic[e.room_id], octile);
 }
 
 void SearchAlgorithmExits::extend_path(xyLoc next_loc) {
