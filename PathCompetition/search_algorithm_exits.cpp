@@ -66,7 +66,7 @@ bool SearchAlgorithmExits::search() {
             double succ_g = node.g_value + compute_room_path_cost(map_info, e.location, g_loc);
             SearchNode &succ_node = search_space.get_node(GOAL_ID);
             if (succ_node.status == NodeStatus::UNINITIALIZED ||
-                succ_g < succ_node.g_value) {
+                succ_g + EPSILON < succ_node.g_value) {
                 succ_node.open(node_id, succ_g, 0);
                 q.insert(succ_node.f_value, GOAL_ID);
             }
