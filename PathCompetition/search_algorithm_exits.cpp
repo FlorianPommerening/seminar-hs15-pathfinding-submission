@@ -24,18 +24,18 @@ bool SearchAlgorithmExits::search() {
     while (!q.empty()) {
         pair<double,int> next = q.pop_min();
         int node_id = next.second;
-
-        if (node_id == GOAL_ID) {
-            extract_path(search_space);
-            return true;
-        }
-
         SearchNode &node = search_space.get_node(node_id);
 
         if (node.status == NodeStatus::CLOSED) {
             continue;
         }
         node.close();
+
+        if (node_id == GOAL_ID) {
+            extract_path(search_space);
+            return true;
+        }
+
 
         Exit e = map_info.exits[node_id];
         for (ExitSuccesor succ : e.successors) {
@@ -83,7 +83,7 @@ void SearchAlgorithmExits::add_successors_of_start(SearchSpace &search_space, Pa
         const Exit &e = map_info.exits[exit_id];
         double g = compute_room_path_cost(map_info, s_loc, e.location);
         SearchNode &node = search_space.get_node(exit_id);
-        int h = get_heuristic_value(e);
+        double h = get_heuristic_value(e);
         node.open(initial_node_id, g, h);
         q.insert(node.f_value, exit_id);
     }
