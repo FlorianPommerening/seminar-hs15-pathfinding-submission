@@ -47,6 +47,7 @@ void ExitPathComputer::detect_gates() {
     map_info.room_exits.resize(map_info.num_rooms);
 
     vector<unordered_set<int>> room_successors(map_info.num_rooms);
+    vector<vector<bool>> has_connection(map_info.num_rooms, vector<bool>(map_info.num_rooms, false));
 
     for (int x = 0; x < map_info.width; ++x) {
         for (int y = 0; y < map_info.height; ++y) {
@@ -62,11 +63,14 @@ void ExitPathComputer::detect_gates() {
                             !map_info.get_occupied(x, suc_y) &&
                             !map_info.get_occupied(suc_x, y) &&
                             succ_room_id != current_room_id) {
-                        int current_exit_id = get_exit(x, y, current_room_id);
-                        int succ_exit_id = get_exit(suc_x, suc_y, succ_room_id);
-                        double cost = (suc_x == x || suc_y == y)? 1 : SQUARE_TWO;
-                        create_transition(current_exit_id, succ_exit_id, cost);
-                        room_successors[current_room_id].insert(succ_room_id);
+                        if (!has_connection[current_room_id][succ_room_id]) {
+                            has_connection[current_room_id][succ_room_id] = true;
+                            int current_exit_id = get_exit(x, y, current_room_id);
+                            int succ_exit_id = get_exit(suc_x, suc_y, succ_room_id);
+                            double cost = (suc_x == x || suc_y == y)? 1 : SQUARE_TWO;
+                            create_transition(current_exit_id, succ_exit_id, cost);
+                            room_successors[current_room_id].insert(succ_room_id);
+                        }
                     }
                 }
             }
