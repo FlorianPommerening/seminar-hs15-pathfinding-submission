@@ -13,7 +13,7 @@ void compute_room_distances(MapInfo &map_info, int room_id) {
     vector<bool> seen(map_info.exits.size(), false);
     vector<double> exit_distance(seen.size(), numeric_limits<double>::max());
 
-    PairOpenList q;
+    PairOpenList q(map_info.exits.size());
     for (Exit &e : map_info.exits) {
         if (e.room_id == room_id) {
             q.insert(0, e.id);

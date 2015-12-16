@@ -17,25 +17,25 @@ using namespace std;
 bool SearchAlgorithmExits::search() {
     SearchSpace search_space(map_info);
     const int GOAL_ID = search_space.get_goal_node_id();
-    PairOpenList q;
+    PairOpenList q(map_info.exits.size() + 2);
     goal_room_id = map_info.get_room(g_loc.x, g_loc.y);
     add_successors_of_start(search_space, q);
 
     while (!q.empty()) {
         pair<double,int> next = q.pop_min();
         int node_id = next.second;
+        SearchNode &node = search_space.get_node(node_id);
+        if (node.f_value != next.first) {
+            continue;
+        }
 
         if (node_id == GOAL_ID) {
             extract_path(search_space);
             return true;
         }
 
-        SearchNode &node = search_space.get_node(node_id);
 
         if (node.status == NodeStatus::CLOSED) {
-            continue;
-        }
-        if (node.f_value != next.first) {
             continue;
         }
         node.close();
@@ -57,11 +57,15 @@ bool SearchAlgorithmExits::search() {
             double succ_g = node.g_value + succ.distance;
             SearchNode &succ_node = search_space.get_node(succ.id);
             if (succ_node.status == NodeStatus::UNINITIALIZED ||
-                succ_g < succ_node.g_value) {
-                double succ_h = 0;
-                succ_h = get_heuristic_value(map_info.exits[succ.id]);
-                succ_node.open(node_id, succ_g, succ_h);
-                q.insert(succ_node.f_value, succ.id);
+                succ_g + EPSILON < succ_node.g_value) {
+                if (succ_node.status == NodeStatus::OPEN) {
+                    succ_node.reopen(node_id, succ_g);
+                    q.decrease_key(succ.id, succ_node.f_value);
+                } else {
+                    double succ_h = get_heuristic_value(map_info.exits[succ.id]);
+                    succ_node.open(node_id, succ_g, succ_h);
+                    q.insert(succ_node.f_value, succ.id);
+                }
             }
         }
 

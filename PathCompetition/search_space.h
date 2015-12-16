@@ -34,6 +34,12 @@ struct SearchNode {
         f_value = g + h;
     }
 
+    void reopen(int parent_id_, double g) {
+        parent_id = parent_id_;
+        f_value = f_value - g_value + g;
+        g_value = g;
+    }
+
     void close() {
         status = NodeStatus::CLOSED;
     }
