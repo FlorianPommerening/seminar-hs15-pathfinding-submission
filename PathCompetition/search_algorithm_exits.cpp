@@ -57,7 +57,7 @@ bool SearchAlgorithmExits::search() {
             double succ_g = node.g_value + succ.distance;
             SearchNode &succ_node = search_space.get_node(succ.id);
             if (succ_node.status == NodeStatus::UNINITIALIZED ||
-                succ_g < succ_node.g_value) {
+                succ_g + EPSILON < succ_node.g_value) {
                 double succ_h = 0;
                 succ_h = get_heuristic_value(map_info.exits[succ.id]);
                 succ_node.open(node_id, succ_g, succ_h);
