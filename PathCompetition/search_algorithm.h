@@ -11,10 +11,11 @@ class SearchAlgorithm {
     const xyLoc s_loc;
     const xyLoc g_loc;
     std::vector<xyLoc> &path;
+    double &path_cost;
 public:
     SearchAlgorithm(MapInfo *map_info, xyLoc s_loc, xyLoc g_loc,
-                    std::vector<xyLoc> &path)
-        : map_info(map_info), s_loc(s_loc), g_loc(g_loc), path(path) {
+                    std::vector<xyLoc> &path, double &path_cost)
+        : map_info(map_info), s_loc(s_loc), g_loc(g_loc), path(path), path_cost(path_cost) {
     }
 
     bool search();

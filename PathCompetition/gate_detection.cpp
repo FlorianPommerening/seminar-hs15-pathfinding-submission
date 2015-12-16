@@ -1,5 +1,6 @@
 #include "gate_detection.h"
 #include "room_paths.h"
+#include "search_algorithm.h"
 
 #include <iostream>
 #include <unordered_set>
@@ -90,15 +91,30 @@ void ExitPathComputer::detect_gates() {
 
     cout << "computing room paths for " << map_info.num_rooms << " rooms" << endl;
     // Transitions within room;
+    int r_id = 0;
     for (const auto &exit_ids : map_info.room_exits) {
+        cout << "computing room paths for room " << r_id++ << "/" << map_info.num_rooms << endl;
         for (int exit_id_1 : exit_ids) {
             for (int exit_id_2 : exit_ids) {
                 if (exit_id_1 >= exit_id_2) continue;
                 Exit &from_exit = map_info.exits[exit_id_1];
                 Exit &to_exit = map_info.exits[exit_id_2];
-                double g = compute_room_path_cost(map_info, from_exit.location, to_exit.location);
-                create_transition(exit_id_1, exit_id_2, g);
-                create_transition(exit_id_2, exit_id_1, g);
+
+
+                vector<xyLoc> path;
+                double cost_shortest_path;
+                SearchAlgorithm algo(&map_info,
+                                     from_exit.location, to_exit.location,
+                                     path, cost_shortest_path);
+                algo.search();
+
+                double cost_shortest_path_in_room =
+                    compute_room_path_cost(map_info, from_exit.location, to_exit.location);
+
+                if (cost_shortest_path + EPSILON >= cost_shortest_path_in_room) {
+                    create_transition(exit_id_1, exit_id_2, cost_shortest_path_in_room);
+                    create_transition(exit_id_2, exit_id_1, cost_shortest_path_in_room);
+                }
             }
         }
     }

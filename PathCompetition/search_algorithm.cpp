@@ -118,6 +118,7 @@ void SearchAlgorithm::try_diagonal_successor(const Node &node, int delta_x, int 
 
 void SearchAlgorithm::ExtractPath(xyLoc end, const vector<double> &visited, vector<xyLoc> &finalPath) {
     double currCost = visited[GetIndex(end)];
+    path_cost = currCost;
 
     finalPath.resize(0);
     finalPath.push_back(end);
