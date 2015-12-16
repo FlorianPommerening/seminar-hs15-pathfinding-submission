@@ -35,9 +35,6 @@ bool SearchAlgorithmExits::search() {
         if (node.status == NodeStatus::CLOSED) {
             continue;
         }
-        if (node.f_value != next.first) {
-            continue;
-        }
         node.close();
 
         Exit e = map_info.exits[node_id];
