@@ -35,12 +35,14 @@ void PreprocessMap(vector<bool> &bits, int width, int height, const char *filena
     detect_gates(map_info);
     draw_rooms("rooms.png", map_info);
 
+    /*
     compute_room_heuristic(map_info);
     for (int room_id = 0; room_id < min(map_info.num_rooms, 10); ++room_id) {
         ostringstream oss;
         oss << "heuristic_" << room_id << ".png";
         draw_heuristic(oss.str(), map_info, room_id);
     }
+    */
 
 
     printf("Writing to file '%s'\n", filename);
