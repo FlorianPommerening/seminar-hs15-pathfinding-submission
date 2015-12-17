@@ -39,7 +39,7 @@ bool SearchAlgorithmExits::search() {
 
         Exit e = map_info.exits[node_id];
         for (ExitSuccesor succ : e.successors) {
-            if (succ.id == node_id) {
+            if (succ.id == node.parent_id) {
                 continue;
             }
 
