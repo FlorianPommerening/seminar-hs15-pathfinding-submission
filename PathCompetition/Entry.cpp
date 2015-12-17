@@ -21,7 +21,7 @@
 using namespace std;
 
 const char *GetName() {
-    return "Florian Pommerening";
+    return "rooms-satisficing";
 }
 
 
