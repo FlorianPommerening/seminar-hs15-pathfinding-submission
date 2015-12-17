@@ -104,21 +104,11 @@ void ExitPathComputer::detect_gates() {
                 Exit &from_exit = map_info.exits[exit_id_1];
                 Exit &to_exit = map_info.exits[exit_id_2];
 
-
-                vector<xyLoc> path;
-                double cost_shortest_path;
-                SearchAlgorithm algo(&map_info,
-                                     from_exit.location, to_exit.location,
-                                     path, cost_shortest_path);
-                algo.search();
-
                 double cost_shortest_path_in_room =
                     compute_room_path_cost(map_info, from_exit.location, to_exit.location);
 
-                if (cost_shortest_path + EPSILON >= cost_shortest_path_in_room) {
-                    create_transition(exit_id_1, exit_id_2, cost_shortest_path_in_room);
-                    create_transition(exit_id_2, exit_id_1, cost_shortest_path_in_room);
-                }
+                create_transition(exit_id_1, exit_id_2, cost_shortest_path_in_room);
+                create_transition(exit_id_2, exit_id_1, cost_shortest_path_in_room);
             }
         }
     }
